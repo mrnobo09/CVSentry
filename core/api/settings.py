@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'auth.apps.AuthConfig',
     'corsheaders',
     'rest_framework',
 ]
@@ -113,6 +114,24 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'core_auth.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+DJOSER = {
+    "USER_ID_FIELD": "username",
+    'LOGIN_FIELD': 'username',
+    "SERIALIZERS": {
+        "user_create": "auth.serializers.UserCreateSerializer",
+        "user": "auth.serializers.UserSerializer",
+        "current_user": "auth.serializers.UserSerializer",
+    },
+}
 
 
 # Internationalization
