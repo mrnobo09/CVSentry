@@ -1,3 +1,31 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Display:wght@300;400;500;600;700;800;900&family=Roboto:wght@100;300;400;500;700;900&display=swap');
+@import "tailwindcss";
+
+* {
+  color:white;
+  box-sizing: border-box;
+}
+
+@theme {
+
+  /* Font Family */
+  --font-sans: "Plus Jakarta Display", Helvetica, Arial, sans-serif;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Font Sizes */
+  --text-xxs: 0.625rem; /* 10px */
+  --text-xs: 0.75rem;   /* 12px */
+  --text-sm: 0.875rem;  /* 14px */
+  --text-md: 1rem;      /* 16px */
+  --text-lg: 1.125rem;  /* 18px */
+  --text-xl: 1.25rem;   /* 20px */
+}
+
+body{
+    background: linear-gradient(135deg, #0E091E 50%, #3343AF 100%);
+}
