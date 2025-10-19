@@ -1,4 +1,4 @@
-import type { TextInputProps } from '../../types/TextInput';
+import type { TextInputProps } from '../../types/input';
 
 export default function TextInput({ value, onChange, placeholder, type="text" }: TextInputProps){
     return(

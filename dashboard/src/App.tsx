@@ -1,12 +1,16 @@
 
 import {Routes,Route} from 'react-router-dom'
 import Login from './screens/login'
+import {authProvider} from './contexts/auth'
+
 function App() {
   
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-    </Routes>
+    <authProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </authProvider>
   )
 }
 

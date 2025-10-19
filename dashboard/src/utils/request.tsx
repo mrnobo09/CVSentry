@@ -10,7 +10,7 @@ export const setAccessToken = (token: string | null) => (accessToken = token);
 // create one axios instance
 const instance = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // for refresh cookie
+  withCredentials: true,
 });
 
 // attach JWT
@@ -31,7 +31,6 @@ instance.interceptors.response.use(
         return instance(err.config); // retry original request once
       } catch {
         accessToken = null;
-        window.location.href = "/login";
       }
     }
     return Promise.reject(err);
