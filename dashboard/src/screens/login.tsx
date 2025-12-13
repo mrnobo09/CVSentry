@@ -7,7 +7,6 @@ import type { loginCredentials } from "../types/form"
 import SpinnerLoader from "../components/forms/spinnerLoader"
 
 
-
 export default function Login(){
 
     const [isLoading,setIsLoading] = useState<boolean>(false)
