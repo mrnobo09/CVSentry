@@ -62,6 +62,8 @@ POSTGRES_PORT=
 DASHBOARD_URL=          # URL where the React dashboard is hosted
 SECRET_KEY=             # Django secret key
 DEBUG=True              # Set to False in production
+EMAIL_HOST_USER=        # Email address for sending OTPs
+EMAIL_HOST_PASSWORD=    # App password for the email account
 ```
 
 ### Frontend Configuration

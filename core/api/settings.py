@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'auth.apps.AuthConfig',
     'corsheaders',
     'rest_framework',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -129,14 +130,30 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    "USER_ID_FIELD": "username",
-    'LOGIN_FIELD': 'username',
+    "USER_ID_FIELD": "email",
+    'LOGIN_FIELD': 'email',
     "SERIALIZERS": {
         "user_create": "auth.serializers.UserCreateSerializer",
         "user": "auth.serializers.UserSerializer",
         "current_user": "auth.serializers.UserSerializer",
     },
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'EMAIL': {
+        'activation': 'auth.email.CustomActivationEmail'
+    }
 }
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+# OTP Settings
+OTP_EXPIRY_SECONDS = 300  # 5 minutes
 
 
 # Internationalization

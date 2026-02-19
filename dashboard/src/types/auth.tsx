@@ -1,4 +1,5 @@
 export interface authContextType {
-    isAuthenticated: boolean;
+    isAuthenticated: boolean | null;
     setIsAuthenticated: (value: boolean) => void;
+    checkAuth: () => Promise<void>;
 }
