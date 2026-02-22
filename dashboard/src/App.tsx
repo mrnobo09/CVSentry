@@ -7,12 +7,14 @@ import Signup from './screens/Signup';
 import VerifyOTP from './screens/VerifyOTP';
 import SignupSuccess from './screens/SignupSuccess';
 import ActivateAccount from './screens/ActivateAccount';
+import Nodes from './screens/Nodes';
 
 function ProtectedRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<Home />} />
+      <Route path="/nodes" element={<Nodes />} />
       <Route path="*" element={<div>404: Protected Page Not Found</div>} />
     </Routes>
   );

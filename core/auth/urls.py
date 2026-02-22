@@ -1,16 +1,23 @@
 from django.urls import path
 from django.urls import include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
+from .views import (
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    VerifyOTPView,
+    DesktopVerifyOTPView,
+    DesktopTokenRefreshView,
 )
-from .views import CustomTokenObtainPairView, CustomTokenRefreshView, VerifyOTPView
 
 urlpatterns = [
     path("", include("djoser.urls")),
-    # path("", include("djoser.urls.jwt")), # We are using custom JWT views
+    # Shared login (Step 1: email/password → OTP email)
     path('login/', CustomTokenObtainPairView.as_view(), name='login-otp-request'),
+
+    # Dashboard auth — tokens via HttpOnly cookie
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='jwt-refresh'),
-    # path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"), # Standard simplejwt
+
+    # Desktop Client auth — tokens in response body (no cookie)
+    path('desktop/verify-otp/', DesktopVerifyOTPView.as_view(), name='desktop-verify-otp'),
+    path('desktop/token/refresh/', DesktopTokenRefreshView.as_view(), name='desktop-token-refresh'),
 ]

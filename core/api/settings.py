@@ -34,9 +34,12 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    os.getenv('DASHBOARD_URL'),
-]
+# CORS_ALLOWED_ORIGINS = [
+#     os.getenv('DASHBOARD_URL'),
+#     ''
+# ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     os.getenv('DASHBOARD_URL'),
@@ -52,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth.apps.AuthConfig',
+    'nodes.apps.NodesConfig',
     'corsheaders',
     'rest_framework',
     'djoser',
@@ -128,6 +132,15 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),   # Long-lived for desktop client
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': False,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
 
 DJOSER = {
     "USER_ID_FIELD": "email",
