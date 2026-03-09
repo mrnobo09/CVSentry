@@ -10,6 +10,7 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
 let accessToken: string | null = null;
 export const setAccessToken = (token: string | null) => (accessToken = token);
+export const getAccessToken = () => accessToken;
 
 const instance = axios.create({
   baseURL: BASE_URL,

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'auth.apps.AuthConfig',
     'nodes.apps.NodesConfig',
+    'alerts.apps.AlertsConfig',
     'corsheaders',
     'rest_framework',
     'djoser',
