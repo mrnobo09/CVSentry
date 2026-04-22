@@ -34,10 +34,9 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_CREDENTIALS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     os.getenv('DASHBOARD_URL'),
-#     ''
-# ]
+CORS_ALLOWED_ORIGINS = [
+    os.getenv('DASHBOARD_URL'),
+]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
