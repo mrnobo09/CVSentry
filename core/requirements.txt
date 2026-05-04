@@ -22,3 +22,8 @@ social-auth-app-django==5.6.0
 social-auth-core==4.8.1
 sqlparse==0.5.3
 urllib3==2.5.0
+qdrant-client
+insightface
+onnxruntime
+opencv-python-headless
+Pillow

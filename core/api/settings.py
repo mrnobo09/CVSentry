@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'auth.apps.AuthConfig',
     'nodes.apps.NodesConfig',
     'alerts.apps.AlertsConfig',
+    'faces.apps.FacesConfig',
     'corsheaders',
     'rest_framework',
     'djoser',
@@ -77,7 +78,7 @@ ROOT_URLCONF = 'api.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -152,6 +153,8 @@ DJOSER = {
     },
     'SEND_ACTIVATION_EMAIL': True,
     'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'DOMAIN': os.getenv('DASHBOARD_URL', 'localhost:5173').replace('http://', '').replace('https://', ''),
+    'SITE_NAME': 'CVSentry',
     'EMAIL': {
         'activation': 'auth.email.CustomActivationEmail'
     }
@@ -186,6 +189,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

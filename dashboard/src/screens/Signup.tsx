@@ -34,11 +34,9 @@ export default function Signup() {
 
         try {
             setIsLoading(true);
-            const response = await request.post('/auth/users/', formData);
-            if (response.status === 201) {
-                // Success
-                navigate('/signup-success');
-            }
+            await request.post('/auth/users/', formData);
+            // Success
+            navigate('/signup-success');
         } catch (error: any) {
             console.error(error);
             if (error.response && error.response.data) {

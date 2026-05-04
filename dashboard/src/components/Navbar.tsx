@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Monitor, Bell, LayoutDashboard, LogOut } from 'lucide-react';
+import { ShieldCheck, Monitor, Bell, LayoutDashboard, LogOut, UserCircle } from 'lucide-react';
 import { useAuth } from '../contexts/auth';
 
 interface NavbarProps {
@@ -20,6 +20,7 @@ export default function Navbar({ unreadCount }: NavbarProps) {
         { to: '/', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/nodes', label: 'Nodes', icon: Monitor },
         { to: '/alerts', label: 'Alerts', icon: Bell, badge: unreadCount },
+        { to: '/faces', label: 'Faces', icon: UserCircle },
     ];
 
     return (

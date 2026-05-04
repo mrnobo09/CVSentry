@@ -40,10 +40,14 @@ export default function Login() {
             }
         } catch (error: any) {
             if (error.response && error.response.status === 401) {
-                setMessage("Invalid email or password.")
+                if (error.response.data && error.response.data.inactive) {
+                    setMessage("Account inactive. A new activation email has been sent.");
+                } else {
+                    setMessage("Invalid email or password.");
+                }
             } else {
                 console.error(error);
-                setMessage("An error occurred. Please try again.")
+                setMessage("An error occurred. Please try again.");
             }
         } finally {
             setIsLoading(false)

@@ -59,23 +59,34 @@ class CustomTokenObtainPairView(APIView):
 
         user = authenticate(request, email=email, password=password)
 
-        if user is not None:
-            if not user.is_active:
-                return Response({"detail": "User account is disabled."}, status=status.HTTP_401_UNAUTHORIZED)
-
-            otp = generate_otp()
-            user.otp = otp
-            user.otp_created_at = timezone.now()
-            user.save()
-            send_otp_email(user.email, otp)
-
-            return Response({
-                "detail": "OTP sent to email.",
-                "email": user.email,
-                "otp_required": True
-            }, status=status.HTTP_200_OK)
-        else:
+        if user is None:
+            # Check if user exists and password is correct but inactive
+            try:
+                inactive_user = User.objects.get(email=email)
+                if inactive_user.check_password(password) and not inactive_user.is_active:
+                    from .email import CustomActivationEmail
+                    context = {"user": inactive_user}
+                    to = [inactive_user.email]
+                    CustomActivationEmail(request, context).send(to)
+                    return Response({"detail": "Account inactive. A new activation email has been sent.", "inactive": True}, status=status.HTTP_401_UNAUTHORIZED)
+            except User.DoesNotExist:
+                pass
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({"detail": "User account is disabled."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        otp = generate_otp()
+        user.otp = otp
+        user.otp_created_at = timezone.now()
+        user.save()
+        send_otp_email(user.email, otp)
+
+        return Response({
+            "detail": "OTP sent to email.",
+            "email": user.email,
+            "otp_required": True
+        }, status=status.HTTP_200_OK)
 
 
 # ---------------------------------------------------------------------------

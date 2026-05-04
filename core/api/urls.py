@@ -10,4 +10,11 @@ urlpatterns = [
     path('auth/', include(auth_urls)),
     path('nodes/', include(node_urls)),
     path('alerts/', include(alert_urls)),
+    path('api/v1/faces/', include('faces.urls')),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

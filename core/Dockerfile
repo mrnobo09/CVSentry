@@ -7,6 +7,9 @@ WORKDIR /app
 # Prevent Python from writing .pyc files and enable unbuffered logs
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV HOME=/tmp
+ENV INSIGHTFACE_HOME=/tmp/insightface
+ENV MPLCONFIGDIR=/tmp/matplotlib
 
 # Install system dependencies
 RUN apt-get update && \
