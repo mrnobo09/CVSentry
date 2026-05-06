@@ -2,12 +2,31 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.throttling import AnonRateThrottle
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.conf import settings
 from .utils import generate_otp, send_otp_email
 from .models import User
-from django.conf import settings
 import datetime
+
+
+class PublicKeyThrottle(AnonRateThrottle):
+    rate = '5/minute'
+
+
+class PublicKeyView(APIView):
+    authentication_classes = []
+    permission_classes = []
+    throttle_classes = [PublicKeyThrottle]
+
+    def get(self, request):
+        return Response(
+            {"public_key": settings.SIMPLE_JWT['VERIFYING_KEY']},
+            status=status.HTTP_200_OK,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Shared OTP helpers
@@ -50,6 +69,9 @@ class CustomTokenObtainPairView(APIView):
     If valid, generate OTP, send email, and return 200 (OTP sent).
     Used by both Dashboard and Desktop Client.
     """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         password = request.data.get("password")
@@ -97,6 +119,9 @@ class VerifyOTPView(APIView):
     """
     Dashboard: verify OTP → access token in body, refresh token in HttpOnly cookie.
     """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         user, err = _validate_otp(request.data.get("email"), request.data.get("otp"))
         if err:
@@ -120,6 +145,9 @@ class CustomTokenRefreshView(APIView):
     """
     Dashboard: refresh access token using HttpOnly cookie only.
     """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
@@ -142,6 +170,9 @@ class DesktopVerifyOTPView(APIView):
     the response body (no cookie). The Desktop Client stores these in
     localStorage and sends them as Bearer / body params respectively.
     """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         user, err = _validate_otp(request.data.get("email"), request.data.get("otp"))
         if err:
@@ -159,6 +190,9 @@ class DesktopTokenRefreshView(APIView):
     Desktop Client: refresh access token by sending the refresh token in the
     request body as { "refresh": "<token>" }. No cookies involved.
     """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get("refresh")
         if not refresh_token:

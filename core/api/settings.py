@@ -14,11 +14,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env file
-load_dotenv(os.path.join(Path(__file__).resolve().parent, '.env'))
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -135,11 +135,16 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
+import base64
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),   # Long-lived for desktop client
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'ALGORITHM': 'RS256',
+    'SIGNING_KEY': base64.b64decode(os.getenv('JWT_PRIVATE_KEY', '')).decode('utf-8'),
+    'VERIFYING_KEY': base64.b64decode(os.getenv('JWT_PUBLIC_KEY', '')).decode('utf-8'),
 }
 
 
