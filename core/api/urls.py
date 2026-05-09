@@ -3,6 +3,7 @@ from django.urls import path, include
 from auth import urls as auth_urls
 from nodes import urls as node_urls
 from alerts import urls as alert_urls
+from recordings import urls as recordings_urls
 
 
 urlpatterns = [
@@ -11,6 +12,7 @@ urlpatterns = [
     path('nodes/', include(node_urls)),
     path('alerts/', include(alert_urls)),
     path('api/v1/faces/', include('faces.urls')),
+    path('', include(recordings_urls)),
 ]
 
 from django.conf import settings

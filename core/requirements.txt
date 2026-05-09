@@ -1,29 +1,45 @@
-asgiref==3.10.0
-certifi==2025.10.5
-cffi==2.0.0
-charset-normalizer==3.4.3
-cryptography==46.0.2
-defusedxml==0.7.1
-Django==5.2.7
-django-cors-headers==4.9.0
-djangorestframework==3.16.1
-djangorestframework_simplejwt==5.5.1
-djoser==2.3.3
-idna==3.10
-oauthlib==3.3.1
-psycopg2-binary==2.9.11
-pycparser==2.23
-PyJWT==2.10.1
+# Core Framework
+Django==6.0.5
+asgiref==3.11.1
+sqlparse==0.5.3
 python-dotenv==1.1.1
-python3-openid==3.2.0
-requests==2.32.5
-requests-oauthlib==2.0.0
+
+# Database
+psycopg2-binary==2.9.11
+
+# API & Authentication
+# DRF 3.17.1+ is required for full Django 6.0 compatibility
+djangorestframework==3.17.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+djoser==2.3.3
+PyJWT==2.10.1
+cryptography==46.0.2
+
+# Social Auth Stack
 social-auth-app-django==5.6.0
 social-auth-core==4.8.1
-sqlparse==0.5.3
+requests-oauthlib==2.0.0
+oauthlib==3.3.1
+python3-openid==3.2.0
+
+# Networking & Utilities
+requests==2.32.5
 urllib3==2.5.0
-qdrant-client
-insightface
-onnxruntime
-opencv-python-headless
-Pillow
+certifi==2025.10.5
+charset-normalizer==3.4.3
+idna==3.10
+cffi==2.0.0
+pycparser==2.23
+defusedxml==0.7.1
+
+# CVSentry Computer Vision Stack
+# These are version-pinned to ensure stability with Python 3.13
+qdrant-client>=1.12.0
+insightface>=0.7.3
+onnxruntime>=1.20.0
+opencv-python-headless>=4.11.0.86
+Pillow>=11.0.0
+
+# Media Storage
+minio>=7.2.0

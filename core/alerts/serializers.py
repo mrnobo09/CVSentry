@@ -8,12 +8,12 @@ class AlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alert
         fields = [
-            "id", "node_label", "node_ip",
+            "id", "threat_id", "node_label", "node_ip",
             "camera_id", "frame_id",
-            "alert_type", "identities",
-            "timestamp", "created_at",
+            "alert_type", "severity", "number_of_guns", "identities",
+            "timestamp", "updated_at", "created_at",
         ]
-        read_only_fields = ["id", "created_at", "node_label"]
+        read_only_fields = ["id", "created_at", "updated_at", "node_label"]
 
     def get_node_label(self, obj):
         if obj.node:
@@ -22,6 +22,9 @@ class AlertSerializer(serializers.ModelSerializer):
 
 
 class AlertCreateSerializer(serializers.Serializer):
+    threat_id  = serializers.CharField(max_length=100)
+    severity   = serializers.ChoiceField(choices=[("normal", "Normal"), ("severe", "Severe")], default="normal")
+    number_of_guns = serializers.IntegerField(default=0)
     camera_id  = serializers.CharField(max_length=100)
     frame_id   = serializers.CharField(max_length=50, required=False, default="")
     alert_type = serializers.CharField(max_length=50, required=False, default="COMBINED_THREAT")

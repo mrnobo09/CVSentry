@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'nodes.apps.NodesConfig',
     'alerts.apps.AlertsConfig',
     'faces.apps.FacesConfig',
+    'recordings.apps.RecordingsConfig',
     'corsheaders',
     'rest_framework',
     'djoser',

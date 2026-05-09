@@ -37,30 +37,33 @@ export default function AlertBanner({ alert, onDismiss }: AlertBannerProps) {
         setTimeout(onDismiss, 300); // wait for slide-out
     };
 
-    const isCombined = alert.alert_type === 'COMBINED_THREAT';
-    const isFace = alert.alert_type === 'FACE_RECOGNIZED';
+    const isSevere = alert.severity === 'severe';
+    const hasFace = alert.identities && alert.identities.length > 0;
+    const hasGuns = alert.number_of_guns > 0;
 
     let containerClasses = 'bg-amber-950/95 border-amber-500/60 shadow-amber-900/50';
     let progressClasses = 'bg-amber-400';
     let iconBgClasses = 'bg-amber-500/20';
     let iconClasses = 'text-amber-400';
     let titleClasses = 'text-amber-300';
-    let titleText = '⚠ Weapon Detected';
+    let titleText = '⚠ Threat Detected';
 
-    if (isFace) {
-        containerClasses = 'bg-orange-950/95 border-orange-500/60 shadow-orange-900/50';
-        progressClasses = 'bg-orange-400';
-        iconBgClasses = 'bg-orange-500/20';
-        iconClasses = 'text-orange-400';
-        titleClasses = 'text-orange-300';
-        titleText = '⚠ Severe Threat: Target Recognized';
-    } else if (isCombined) {
+    if (isSevere) {
         containerClasses = 'bg-red-950/95 border-red-500/60 shadow-red-900/50';
         progressClasses = 'bg-red-400';
         iconBgClasses = 'bg-red-500/20';
         iconClasses = 'text-red-400 animate-pulse';
         titleClasses = 'text-red-300';
-        titleText = '⚠ Highly Severe: Armed Suspect';
+        titleText = hasFace ? '⚠ Severe Threat: Armed Suspect Recognized' : '⚠ Severe Threat: Gun Pointed';
+    } else if (hasFace) {
+        containerClasses = 'bg-orange-950/95 border-orange-500/60 shadow-orange-900/50';
+        progressClasses = 'bg-orange-400';
+        iconBgClasses = 'bg-orange-500/20';
+        iconClasses = 'text-orange-400';
+        titleClasses = 'text-orange-300';
+        titleText = '⚠ Threat: Target Recognized';
+    } else if (hasGuns) {
+        titleText = '⚠ Threat: Weapon Detected';
     }
 
     return (

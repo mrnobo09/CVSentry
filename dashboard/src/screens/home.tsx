@@ -109,13 +109,12 @@ export default function Home() {
                             ) : recentAlerts.map(alert => (
                                 <div key={alert.id} className="px-6 py-3.5 flex items-start gap-3 hover:bg-gray-800/40 transition-colors">
                                     <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0
-                                        ${alert.alert_type === 'COMBINED_THREAT' ? 'bg-red-500' :
-                                          alert.alert_type === 'WEAPON_DETECTED' ? 'bg-amber-500' : 'bg-blue-500'}`}
+                                        ${alert.severity === 'severe' ? 'bg-red-500' : 'bg-yellow-500'}`}
                                     />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-semibold text-white truncate">
-                                                {alert.alert_type.replace(/_/g, ' ')}
+                                            <span className="text-sm font-semibold text-white truncate uppercase">
+                                                {alert.severity} THREAT
                                             </span>
                                             {alert.identities?.length > 0 && (
                                                 <span className="text-xs text-red-400 truncate">

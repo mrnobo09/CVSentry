@@ -3,13 +3,17 @@ import request from '../utils/request';
 
 export interface Alert {
     id: number;
+    threat_id: string | null;
     node_label: string;
     node_ip: string;
     camera_id: string;
     frame_id: string;
     alert_type: string;
+    severity: string;
+    number_of_guns: number;
     identities: string[];
     timestamp: string;
+    updated_at: string;
     created_at: string;
 }
 
@@ -50,27 +54,34 @@ export function useAlerts(): UseAlertsResult {
             const data: Alert[] = await request.get(`/alerts/${params}`);
 
             if (data && data.length > 0) {
-                // Update the "since" cursor to the most recent timestamp
-                sinceRef.current = data[0].timestamp;
+                // Update the "since" cursor to the most recent updated_at timestamp
+                // The backend sorts by -updated_at, so data[0] is the most recently updated
+                sinceRef.current = data[0].updated_at;
 
                 if (initialLoad.current) {
                     // On first load just populate history, no alarm
                     setAlerts(data);
                     initialLoad.current = false;
                 } else {
-                    // New alerts — notify
+                    // New or updated alerts — notify and merge
                     setAlerts(prev => {
-                        const existingIds = new Set(prev.map(a => a.id));
-                        const fresh = data.filter(a => !existingIds.has(a.id));
-                        if (fresh.length > 0) {
-                            const newest = fresh[0];
+                        const updatedMap = new Map(data.map(a => [a.id, a]));
+                        const newAlerts = data.filter(a => !prev.find(p => p.id === a.id));
+                        
+                        // Replace updated ones, append entirely new ones
+                        let merged = prev.map(p => updatedMap.get(p.id) || p);
+                        merged = [...newAlerts, ...merged].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+                        if (newAlerts.length > 0 || data.some(a => a.severity === 'severe')) {
+                            const newest = data[0];
                             setLatestAlert(newest);
-                            setUnreadCount(c => c + fresh.length);
-                            if (['COMBINED_THREAT', 'WEAPON_DETECTED', 'FACE_RECOGNIZED'].includes(newest.alert_type)) {
+                            // Only increment unread for genuinely new alerts
+                            setUnreadCount(c => c + newAlerts.length);
+                            if (newest.severity === 'severe' || newAlerts.length > 0) {
                                 playAlertSound();
                             }
                         }
-                        return [...fresh, ...prev].slice(0, 200);
+                        return merged.slice(0, 200);
                     });
                 }
             } else if (initialLoad.current) {

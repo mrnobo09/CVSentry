@@ -33,6 +33,7 @@ class NodeRegisterView(APIView):
             defaults={
                 'label': data.get('label', ''),
                 'srs_port': data.get('srs_port', 8080),
+                'webrtc_port': data.get('webrtc_port', 8001),
                 'is_online': True,
             }
         )

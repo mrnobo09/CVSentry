@@ -10,6 +10,7 @@ import ActivateAccount from './screens/ActivateAccount';
 import Nodes from './screens/Nodes';
 import AlertsScreen from './screens/AlertsScreen';
 import FacesScreen from './screens/FacesScreen';
+import Recordings from './screens/Recordings';
 import Navbar from './components/Navbar';
 import AlertBanner from './components/AlertBanner';
 import { useAlerts } from './hooks/useAlerts';
@@ -33,6 +34,7 @@ function ProtectedLayout() {
         <Route path="/nodes" element={<Nodes />} />
         <Route path="/alerts" element={<AlertsScreen />} />
         <Route path="/faces" element={<FacesScreen />} />
+        <Route path="/recordings" element={<Recordings />} />
         <Route path="*" element={<div className="pt-24 text-center text-gray-500">404: Page Not Found</div>} />
       </Routes>
     </>

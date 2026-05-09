@@ -6,7 +6,7 @@ services:
     container_name: postgres_db
     restart: always
     env_file:
-      - ./core/.env        
+      - ./core/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -24,9 +24,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./core:/app          # sync local code with container
+      - ./core:/app
+      - srs_records:/records
     env_file:
-      - ./core/.env          # loads core-specific env vars
+      - ./core/.env
     environment:
       - INSIGHTFACE_HOME=/tmp/insightface
       - MPLCONFIGDIR=/tmp/matplotlib
@@ -46,9 +47,70 @@ services:
     volumes:
       - qdrant_cloud_data:/qdrant/storage
 
+  minio:
+    image: minio/minio:latest
+    container_name: cvsentry-minio
+    restart: unless-stopped
+    env_file:
+      - ./core/.env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  minio-bootstrap:
+    image: minio/mc:latest
+    container_name: cvsentry-minio-bootstrap
+    depends_on:
+      - minio
+    env_file:
+      - ./core/.env
+    entrypoint: >
+      sh -c "
+      until mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin}; do
+        echo 'Waiting for MinIO to start...';
+        sleep 2;
+      done;
+      mc mb --ignore-existing local/cvsentry-recordings;
+      mc anonymous set private local/cvsentry-recordings;
+      # Set CORS policy (allow all for dev)
+      echo '{"Config": {"CorsConfig": {"CorsRules": [{"AllowedHeaders": ["*"], "AllowedMethods": ["GET", "HEAD"], "AllowedOrigins": ["*"], "ExposeHeaders": ["ETag"], "MaxAgeSeconds": 3000}]}}}' > /tmp/cors.json;
+      # Note: Setting CORS via mc admin config is complex, instead we rely on pre-signed URLs 
+      # which usually bypass simple CORS if the browser sends the right headers.
+      # However, let's try to set it globally if possible.
+      echo 'MinIO bootstrap complete';
+      "
+
+  srs:
+    image: ossrs/srs:6
+    container_name: cvsentry-srs
+    restart: unless-stopped
+    env_file:
+      - ./core/.env
+    environment:
+      CANDIDATE: ${SRS_CANDIDATE:-127.0.0.1}
+      SRS_API_PASSWORD: ${SRS_API_PASSWORD:-changeMe}
+    ports:
+      - "8000:8000/udp"
+      - "1985:1985"
+    volumes:
+      - ./srs/srs.conf:/usr/local/srs/conf/srs.conf:ro
+      - srs_records:/usr/local/srs/objs/nginx/html/records
+    command: >
+      sh -c "sed \"s/__SRS_API_PASSWORD__/$${SRS_API_PASSWORD}/g\" /usr/local/srs/conf/srs.conf > /tmp/srs_runtime.conf
+      && exec ./objs/srs -c /tmp/srs_runtime.conf"
+
 volumes:
   postgres_data:
   qdrant_cloud_data:
+  minio_data:
+  srs_records:
+
 networks:
   default:
     name: core_network

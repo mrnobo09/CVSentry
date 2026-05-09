@@ -1,5 +1,16 @@
 from djoser import email
 from django.conf import settings
+from django.tasks import task
+
+@task
+def send_activation_email_task(user_id, to):
+    from .models import User
+    try:
+        user = User.objects.get(id=user_id)
+        email_obj = CustomActivationEmail(None, {'user': user})
+        super(CustomActivationEmail, email_obj).send(to)
+    except User.DoesNotExist:
+        pass
 
 class CustomActivationEmail(email.ActivationEmail):
     template_name = 'email/activation.html'
@@ -15,3 +26,10 @@ class CustomActivationEmail(email.ActivationEmail):
         context['site_name'] = 'CVSentry'
         context['url'] = f"{frontend_url}/activate/{context.get('uid')}/{context.get('token')}"
         return context
+
+    def send(self, to, *args, **kwargs):
+        user = getattr(self, 'context', {}).get('user')
+        if user and getattr(user, 'id', None):
+            send_activation_email_task.enqueue(user_id=user.id, to=to)
+        else:
+            super().send(to, *args, **kwargs)

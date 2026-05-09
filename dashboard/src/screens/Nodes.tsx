@@ -9,6 +9,7 @@ interface NodeCamera {
     stream_key: string;
     is_active: boolean;
     flv_url: string;
+    webrtc_url: string;
 }
 
 interface Node {
@@ -18,12 +19,22 @@ interface Node {
     base_url: string;
     port: number;
     srs_port: number;
+    webrtc_port: number;
     last_seen: string;
     cameras: NodeCamera[];
 }
 
+interface LiveStream {
+    id: string;
+    camera_id: string;
+    srs_stream_id: string;
+    started_at: string;
+    is_active: boolean;
+}
+
 export default function Nodes() {
     const [nodes, setNodes] = useState<Node[]>([]);
+    const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
     const [expandedNodeId, setExpandedNodeId] = useState<number | null>(null);
@@ -43,9 +54,20 @@ export default function Nodes() {
         }
     };
 
+    const fetchLiveStreams = async () => {
+        try {
+            const data = await request.get('/api/v1/streams/');
+            setLiveStreams(data || []);
+        } catch {}
+    };
+
     useEffect(() => {
         fetchNodes();
-        const interval = setInterval(fetchNodes, 15_000); // poll every 15 s
+        fetchLiveStreams();
+        const interval = setInterval(() => {
+            fetchNodes();
+            fetchLiveStreams();
+        }, 15_000);
         return () => clearInterval(interval);
     }, []);
 
@@ -54,18 +76,19 @@ export default function Nodes() {
     };
 
     const totalCameras = nodes.reduce((s, n) => s + n.cameras.filter(c => c.is_active).length, 0);
+    const activeStreamsCount = liveStreams.filter(s => s.is_active).length;
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 pt-20 pb-12 px-6">
             <div className="max-w-7xl mx-auto">
 
-                {/* Header */}
                 <header className="mb-8 flex items-start justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-white">Nodes</h1>
                         <p className="text-gray-400 mt-1 text-sm">
                             {nodes.length} node{nodes.length !== 1 ? 's' : ''}
                             {totalCameras > 0 && ` · ${totalCameras} active camera${totalCameras !== 1 ? 's' : ''}`}
+                            {activeStreamsCount > 0 && ` · ${activeStreamsCount} live stream${activeStreamsCount !== 1 ? 's' : ''}`}
                             {lastRefresh && (
                                 <span className="ml-2 text-gray-600">
                                     · updated {lastRefresh.toLocaleTimeString()}
@@ -74,7 +97,7 @@ export default function Nodes() {
                         </p>
                     </div>
                     <button
-                        onClick={fetchNodes}
+                        onClick={() => { fetchNodes(); fetchLiveStreams(); }}
                         disabled={isLoading}
                         className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                     >
@@ -83,14 +106,15 @@ export default function Nodes() {
                     </button>
                 </header>
 
-                {/* Empty state */}
-                {!isLoading && nodes.length === 0 && (
+                {!isLoading && nodes.length === 0 && activeStreamsCount === 0 && (
                     <div className="text-center py-24 border border-gray-800 rounded-2xl bg-gray-900/30 text-gray-500">
                         <Monitor className="w-16 h-16 mx-auto mb-4 opacity-20" />
                         <p className="text-lg font-semibold mb-1">No active nodes</p>
                         <p className="text-sm">Start a CVSentry Desktop Client and log in to register it here.</p>
                     </div>
                 )}
+
+
 
                 {/* Node list */}
                 <div className="space-y-3">
@@ -107,15 +131,12 @@ export default function Nodes() {
                                         : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
                                     }`}
                             >
-                                {/* Node header row — clicking expands/collapses */}
                                 <button
                                     onClick={() => toggleNode(node.id)}
                                     className="w-full flex items-center gap-4 px-6 py-4 text-left"
                                 >
-                                    {/* Online dot */}
                                     <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shrink-0" />
 
-                                    {/* Label + meta */}
                                     <div className="flex-1 min-w-0">
                                         <p className="text-base font-semibold text-white">
                                             {node.label || `Node #${node.id}`}
@@ -127,19 +148,16 @@ export default function Nodes() {
                                         </p>
                                     </div>
 
-                                    {/* Camera count */}
                                     <div className="flex items-center gap-1.5 text-sm text-emerald-400 shrink-0">
                                         <Camera className="w-4 h-4" />
                                         {activeCameras.length} active
                                     </div>
 
-                                    {/* Last seen */}
                                     <div className="hidden sm:flex items-center gap-1 text-xs text-gray-600 shrink-0">
                                         <Clock className="w-3 h-3" />
                                         {new Date(node.last_seen).toLocaleTimeString()}
                                     </div>
 
-                                    {/* External link */}
                                     <a
                                         href={`${node.base_url}:${node.port}`}
                                         target="_blank"
@@ -151,7 +169,6 @@ export default function Nodes() {
                                         <ExternalLink className="w-4 h-4" />
                                     </a>
 
-                                    {/* Expand chevron */}
                                     <div className="shrink-0 ml-1 text-gray-500">
                                         {isExpanded
                                             ? <ChevronDown className="w-5 h-5" />
@@ -160,7 +177,6 @@ export default function Nodes() {
                                     </div>
                                 </button>
 
-                                {/* Expanded camera feeds */}
                                 {isExpanded && (
                                     <div className="px-6 pb-6 border-t border-gray-800">
                                         <div className="pt-5">
@@ -183,10 +199,7 @@ export default function Nodes() {
                                                         {activeCameras.map(camera => (
                                                             <WebRTCPlayer
                                                                 key={camera.id}
-                                                                cameraId={camera.stream_key}
-                                                                nodeBaseUrl={node.base_url}
-                                                                nodePort={node.port}
-                                                                accessToken={accessToken}
+                                                                cameraId={camera.camera_id}
                                                             />
                                                         ))}
                                                     </div>

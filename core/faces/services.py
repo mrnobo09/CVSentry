@@ -4,6 +4,7 @@ import numpy as np
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import VectorParams, Distance, PointStruct
 from django.conf import settings
+from django.tasks import task
 
 # CRITICAL: Set this BEFORE importing or initializing InsightFace
 os.environ['INSIGHTFACE_HOME'] = '/tmp/insightface'
@@ -102,3 +103,43 @@ def delete_face_from_qdrant(qdrant_id: str):
         collection_name="faces",
         points_selector=[qdrant_id]
     )
+
+
+@task
+def process_face_identity_task(identity_id):
+    from .models import FaceIdentity
+    try:
+        identity = FaceIdentity.objects.get(id=identity_id)
+    except FaceIdentity.DoesNotExist:
+        return
+
+    embeddings = []
+    errors = []
+
+    for i, face_img in enumerate(identity.images.all()):
+        try:
+            emb = extract_embedding(face_img.image.path)
+            embeddings.append(emb)
+        except ValueError as e:
+            errors.append(f"Image {i+1}: {str(e)}")
+
+    if len(embeddings) < 4:
+        print(f"[face worker] ❌ Deleted identity {identity_id}: Not enough valid faces. Issues: {errors}")
+        identity.delete()
+        return
+
+    try:
+        avg_embedding = average_embeddings(embeddings)
+        identity.embedding = avg_embedding
+        identity.save()
+
+        metadata = {
+            "name": identity.name,
+            "is_global": False,
+            "user_id": str(identity.user.id) if identity.user else None
+        }
+        upsert_face_to_qdrant(str(identity.qdrant_id), avg_embedding, metadata)
+        print(f"[face worker] ✅ Processed & upserted identity {identity_id}")
+    except Exception as e:
+        print(f"[face worker] ❌ Unexpected Error: {str(e)}")
+        identity.delete()

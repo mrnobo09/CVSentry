@@ -49,46 +49,16 @@ class FaceIdentityViewSet(viewsets.ModelViewSet):
         )
         identity.save()
 
-        saved_images = []
-        embeddings = []
-        errors = []
-
         try:
-            for i, img_file in enumerate(images):
+            for img_file in images:
                 # Save the image record
                 face_img = FaceImage(identity=identity, image=img_file)
                 face_img.save()
-                saved_images.append(face_img)
 
-                # Extract embedding from saved file
-                try:
-                    emb = extract_embedding(face_img.image.path)
-                    embeddings.append(emb)
-                except ValueError as e:
-                    errors.append(f"Image {i+1}: {str(e)}")
+            # Enqueue processing to background tasks
+            from .services import process_face_identity_task
+            process_face_identity_task.enqueue(identity_id=str(identity.id))
 
-            if len(embeddings) < 4:
-                # Not enough valid faces detected — rollback
-                identity.delete()  # Cascades to FaceImages
-                return Response(
-                    {"detail": f"Only {len(embeddings)} of {len(images)} images had detectable faces. "
-                               f"All 4-5 images must contain a clear face. Issues: {'; '.join(errors)}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Average all embeddings into one robust representation
-            avg_embedding = average_embeddings(embeddings)
-            identity.embedding = avg_embedding
-            identity.save()
-            
-            # Upsert to Cloud Qdrant
-            metadata = {
-                "name": identity.name,
-                "is_global": False,
-                "user_id": str(request.user.id)
-            }
-            upsert_face_to_qdrant(str(identity.qdrant_id), avg_embedding, metadata)
-            
             return Response(FaceIdentitySerializer(identity).data, status=status.HTTP_201_CREATED)
             
         except Exception as e:

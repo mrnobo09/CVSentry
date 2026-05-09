@@ -12,7 +12,7 @@ class AlertCreateView(APIView):
     """
     POST /alerts/create/
     Called by Desktop Client when a COMBINED_THREAT (or other alert) is detected.
-    Resolves the node from node_ip + user, creates an Alert record.
+    Resolves the node from node_ip + user, creates or updates an Alert record based on threat_id.
     """
     permission_classes = [IsAuthenticated]
 
@@ -30,19 +30,27 @@ class AlertCreateView(APIView):
             base_url__contains=node_ip,
         ).first()
 
-        alert = Alert.objects.create(
-            node=node,
-            camera_id=data["camera_id"],
-            frame_id=data.get("frame_id", ""),
-            alert_type=data.get("alert_type", "COMBINED_THREAT"),
-            identities=data.get("identities", []),
-            node_ip=node_ip,
-            timestamp=data["timestamp"],
+        threat_id = data.get("threat_id")
+
+        alert, created = Alert.objects.update_or_create(
+            threat_id=threat_id,
+            defaults={
+                "user": request.user,
+                "node": node,
+                "severity": data.get("severity", "normal"),
+                "number_of_guns": data.get("number_of_guns", 0),
+                "camera_id": data["camera_id"],
+                "frame_id": data.get("frame_id", ""),
+                "alert_type": data.get("alert_type", "COMBINED_THREAT"),
+                "identities": data.get("identities", []),
+                "node_ip": node_ip,
+                "timestamp": data["timestamp"],
+            }
         )
 
         print(
-            f"[alerts] 🚨 Saved alert: type={alert.alert_type} "
-            f"camera={alert.camera_id} identities={alert.identities}"
+            f"[alerts] 🚨 {'Created' if created else 'Updated'} alert: type={alert.alert_type} "
+            f"severity={alert.severity} camera={alert.camera_id} identities={alert.identities}"
         )
 
         return Response(AlertSerializer(alert).data, status=status.HTTP_201_CREATED)
@@ -50,32 +58,31 @@ class AlertCreateView(APIView):
 
 class AlertListView(APIView):
     """
-    GET /alerts/?since=<iso-timestamp>&limit=50
-    Returns alerts for the authenticated user's nodes, newest first.
-    Supports incremental polling via ?since= for the dashboard.
+    GET /alerts/?since=<iso-timestamp>&limit=50&date=YYYY-MM-DD
+    Returns alerts for the authenticated user, newest first based on updated_at.
+    Supports incremental polling via ?since= and historical view via ?date=.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Gather user's node IPs and node FKs
-        user_nodes = Node.objects.filter(user=request.user)
-        user_node_ips = list(user_nodes.values_list("base_url", flat=True))
+        qs = Alert.objects.filter(user=request.user).order_by("-updated_at")
 
-        # Base queryset: alerts linked to user's nodes OR matching node_ip
-        qs = Alert.objects.filter(
-            node__in=user_nodes
-        ) | Alert.objects.filter(
-            node__isnull=True,
-            node_ip__in=[ip.replace("http://", "") for ip in user_node_ips],
-        )
-        qs = qs.distinct().order_by("-timestamp")
+        # Date filtering
+        date_str = request.query_params.get("date")
+        if date_str:
+            try:
+                from datetime import datetime
+                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                qs = qs.filter(timestamp__date=target_date)
+            except ValueError:
+                pass # ignore invalid date format
 
         # Incremental polling filter
         since_str = request.query_params.get("since")
         if since_str:
             since_dt = parse_datetime(since_str)
             if since_dt:
-                qs = qs.filter(timestamp__gt=since_dt)
+                qs = qs.filter(updated_at__gt=since_dt)
 
         # Limit
         try:
