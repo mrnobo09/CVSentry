@@ -22,4 +22,7 @@ urlpatterns = [
     path('api/v1/recordings/<uuid:recording_id>/playlist.m3u8', views.RecordingPlaylistView.as_view(), name='recording-playlist'),
     path('api/v1/recordings/<uuid:recording_id>/segments/<int:segment_index>.ts', views.RecordingSegmentProxyView.as_view(), name='recording-segment'),
     path('api/v1/recordings/<uuid:recording_id>/metadata/', views.RecordingMetadataView.as_view(), name='recording-metadata'),
+
+    # Configuration
+    path('api/v1/config/ice-servers/', views.ICEConfigView.as_view(), name='ice-config'),
 ]

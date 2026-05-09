@@ -24,7 +24,8 @@ interface FrameMetadata {
 }
 
 interface ThreatSegment {
-    offset_ms: number;
+    start_ms: number;
+    end_ms: number;
     severity: 'normal' | 'severe';
 }
 
@@ -42,9 +43,11 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
     const [threatSegments, setThreatSegments] = useState<ThreatSegment[]>([]);
     const [durationMs, setDurationMs] = useState(0);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
+    const [startTimestampMicros, setStartTimestampMicros] = useState<number>(0);
 
     const metadataCache = useRef<Map<number, FrameMetadata>>(new Map());
     const metadataInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    const lastPrefetchTimeMs = useRef<number>(-10000);
 
     const fetchMetadataTimeline = useCallback(async () => {
         try {
@@ -55,28 +58,48 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
         } catch {}
     }, [recordingId]);
 
-    const fetchMetadataAtTime = useCallback(async (timeMs: number) => {
-        const roundedKey = Math.round(timeMs / 100);
-        if (metadataCache.current.has(roundedKey)) {
-            setMetadata(metadataCache.current.get(roundedKey)!);
-            return;
+    const fetchMetadataAtTime = useCallback(async (timeMs: number, overrideStartMicros?: number) => {
+        const startMicros = overrideStartMicros || startTimestampMicros;
+        if (!startMicros) return;
+        
+        const absTimeMicros = startMicros + (timeMs * 1000);
+        
+        // 1. Try to get from cache first (100ms bucket)
+        const bucket = Math.round(absTimeMicros / 100000);
+        if (metadataCache.current.has(bucket)) {
+            setMetadata(metadataCache.current.get(bucket)!);
         }
-        try {
-            const data = await request.get<{ results: { detections: FrameMetadata; timestamp_micros: number }[] }>(
-                `/api/v1/recordings/${recordingId}/metadata/?start_ms=${Math.max(0, timeMs - 500)}&end_ms=${timeMs + 500}&limit=3`
-            );
-            if (data.results && data.results.length > 0) {
-                const md = data.results[0].detections;
-                metadataCache.current.set(roundedKey, md);
-                setMetadata(md);
-            }
-        } catch {}
-    }, [recordingId]);
+
+        // 2. Prefetch if we are getting close to the end of our cached window
+        if (timeMs > lastPrefetchTimeMs.current + 5000) {
+            lastPrefetchTimeMs.current = timeMs;
+            try {
+                const startSearch = absTimeMicros;
+                const endSearch = absTimeMicros + 15000000; // Increase to +15s for more safety
+                
+                const data = await request.get<{ results: { detections: FrameMetadata; timestamp_micros: number }[] }>(
+                    `/api/v1/recordings/${recordingId}/metadata/?start_ms=${startSearch / 1000}&end_ms=${endSearch / 1000}&limit=500`
+                );
+                
+                if (data.results) {
+                    data.results.forEach(item => {
+                        const b = Math.round(item.timestamp_micros / 100000);
+                        metadataCache.current.set(b, item.detections);
+                    });
+                    // Refresh current metadata immediately from newly fetched data
+                    if (data.results.length > 0 && !metadataCache.current.has(bucket)) {
+                        setMetadata(data.results[0].detections);
+                    }
+                }
+            } catch {}
+        }
+    }, [recordingId, startTimestampMicros]);
 
     const handleSeek = useCallback((timeMs: number) => {
         const video = videoRef.current;
         if (video) {
             video.currentTime = timeMs / 1000;
+            lastPrefetchTimeMs.current = -10000; // Trigger fresh prefetch
         }
     }, []);
 
@@ -107,6 +130,15 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
         async function load() {
             try {
                 const recordingData = await request.get<any>(`/api/v1/recordings/${recordingId}/`);
+                if (isMounted) {
+                    const startMicros = recordingData.start_timestamp_micros || 0;
+                    setStartTimestampMicros(startMicros);
+                    
+                    // Trigger an immediate "Warm-up Prefetch" for the start of the video
+                    if (startMicros) {
+                        fetchMetadataAtTime(0, startMicros);
+                    }
+                }
                 const manifestUrl = `${import.meta.env.VITE_BACKEND_URL}${recordingData.playlist_url}`;
 
                 const Hls = (await import('hls.js')).default;
@@ -163,7 +195,7 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
             if (video && !video.paused) {
                 fetchMetadataAtTime(video.currentTime * 1000);
             }
-        }, 250);
+        }, 100);
 
         return () => {
             isMounted = false;

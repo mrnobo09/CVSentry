@@ -530,6 +530,7 @@ class RecordingDetailView(APIView):
         from django.urls import reverse
         playlist_path = reverse('recording-playlist', kwargs={'recording_id': recording.id})
         data['playlist_url'] = f"{playlist_path}?token={token}"
+        data['start_timestamp_micros'] = int(recording.started_at.timestamp() * 1_000_000)
         
         return Response(data)
 
@@ -640,3 +641,51 @@ class RecordingMetadataView(APIView):
             'count': qs.count() if not (start_ms or end_ms) else recording.frame_metadata.count(),
             'results': FrameMetadataSerializer(qs, many=True).data,
         })
+
+
+# ── Configuration ────────────────────────────────────────────────────
+
+TURN_SHARED_SECRET = os.getenv('TURN_SHARED_SECRET', '')
+TURN_EXTERNAL_IP = os.getenv('TURN_EXTERNAL_IP', '')
+TURN_REALM = os.getenv('TURN_REALM', 'cvsentry.local')
+TURN_CREDENTIAL_TTL = int(os.getenv('TURN_CREDENTIAL_TTL', '86400'))
+
+
+def _generate_turn_credentials(user_id):
+    expiry = int(time.time()) + TURN_CREDENTIAL_TTL
+    username = f"{expiry}:{user_id}:{TURN_REALM}"
+    password = base64.b64encode(
+        hmac.new(TURN_SHARED_SECRET.encode(), username.encode(), hashlib.sha1).digest()
+    ).decode()
+    return username, password
+
+
+class ICEConfigView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        ice_servers = [
+            {'urls': ['stun:stun.l.google.com:19302']},
+        ]
+
+        if TURN_EXTERNAL_IP and TURN_SHARED_SECRET:
+            username, password = _generate_turn_credentials(str(request.user.id))
+
+            ice_servers.append({
+                'urls': [
+                    f'stun:{TURN_EXTERNAL_IP}:3478',
+                    f'stun:{TURN_EXTERNAL_IP}:5349',
+                ],
+            })
+            ice_servers.append({
+                'urls': [
+                    f'turn:{TURN_EXTERNAL_IP}:3478?transport=udp',
+                    f'turn:{TURN_EXTERNAL_IP}:3478?transport=tcp',
+                    f'turns:{TURN_EXTERNAL_IP}:5349?transport=tcp',
+                ],
+                'username': username,
+                'credential': password,
+                'credentialType': 'password',
+            })
+
+        return Response({'iceServers': ice_servers})

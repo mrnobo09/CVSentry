@@ -81,9 +81,19 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
                 const streamUrl = data.stream_url;
                 const token = data.token;
 
-                pc = new RTCPeerConnection({
-                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-                });
+                let iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+                try {
+                    const iceResp = await fetch('/api/v1/config/ice-servers/', {
+                        headers: { 'Authorization': `Bearer ${accessToken}` },
+                    });
+                    if (iceResp.ok) {
+                        const iceConfig = await iceResp.json();
+                        if (iceConfig.iceServers && iceConfig.iceServers.length) {
+                            iceServers = iceConfig.iceServers;
+                        }
+                    }
+                } catch {}
+                pc = new RTCPeerConnection({ iceServers });
                 pcRef.current = pc;
 
                 pc.addTransceiver('video', { direction: 'recvonly' });
@@ -132,13 +142,18 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
                     }
                 };
 
+                if (metadataPollRef.current) {
+                    clearInterval(metadataPollRef.current);
+                }
+
                 if (!dcRef.current) {
                     metadataPollRef.current = setInterval(async () => {
+                        if (!isMounted) return;
                         try {
                             const md = await request.get<{ results: { detections: FrameMetadata }[] }>(
                                 `/api/v1/streams/${cameraId}/latest-metadata/?limit=1`
                             );
-                            if (md.results && md.results.length > 0) {
+                            if (isMounted && md.results && md.results.length > 0) {
                                 setMetadata(md.results[0].detections);
                             }
                         } catch { }
@@ -181,6 +196,11 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
                     if (retryCount < 5) {
                         const backoff = Math.min(1000 * Math.pow(2, retryCount), 10000);
                         retryTimeout = setTimeout(() => start(retryCount + 1), backoff);
+                    } else {
+                        if (metadataPollRef.current) {
+                            clearInterval(metadataPollRef.current);
+                            metadataPollRef.current = null;
+                        }
                     }
                 }
             }

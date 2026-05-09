@@ -105,6 +105,17 @@ services:
       sh -c "sed \"s/__SRS_API_PASSWORD__/$${SRS_API_PASSWORD}/g\" /usr/local/srs/conf/srs.conf > /tmp/srs_runtime.conf
       && exec ./objs/srs -c /tmp/srs_runtime.conf"
 
+  coturn:
+    image: coturn/coturn:latest
+    container_name: cvsentry-coturn
+    restart: unless-stopped
+    network_mode: "host"
+    env_file:
+      - ./core/.env
+    volumes:
+      - ./coturn/start.sh:/coturn/start.sh:ro
+    entrypoint: ["/bin/bash", "/coturn/start.sh"]
+
 volumes:
   postgres_data:
   qdrant_cloud_data:

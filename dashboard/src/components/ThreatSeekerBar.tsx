@@ -1,7 +1,8 @@
 import { useRef, useCallback, useState } from 'react';
 
 interface ThreatSegment {
-    offset_ms: number;
+    start_ms: number;
+    end_ms: number;
     severity: 'normal' | 'severe';
 }
 
@@ -37,31 +38,15 @@ export default function ThreatSeekerBar({ segments, durationMs, currentTimeMs, o
     const buildRegions = () => {
         if (durationMs <= 0 || segments.length === 0) return null;
 
-        const sorted = [...segments].sort((a, b) => a.offset_ms - b.offset_ms);
-        const regions: { left: number; width: number; severity: string }[] = [];
-
-        let regionStart = sorted[0].offset_ms;
-        let regionSeverity = sorted[0].severity;
-
-        for (const seg of sorted) {
-            if (seg.severity !== regionSeverity) {
-                const left = (regionStart / durationMs) * 100;
-                const width = ((seg.offset_ms - regionStart) / durationMs) * 100;
-                if (width > 0.1) {
-                    regions.push({ left, width: Math.max(width, 0.3), severity: regionSeverity });
-                }
-                regionStart = seg.offset_ms;
-                regionSeverity = seg.severity;
-            }
-        }
-
-        const left = (regionStart / durationMs) * 100;
-        const width = ((durationMs - regionStart) / durationMs) * 100;
-        if (width > 0.1) {
-            regions.push({ left, width: Math.max(width, 0.3), severity: regionSeverity });
-        }
-
-        return regions;
+        return segments.map((seg, i) => {
+            const left = (seg.start_ms / durationMs) * 100;
+            const width = ((seg.end_ms - seg.start_ms) / durationMs) * 100;
+            return {
+                left,
+                width: Math.max(width, 0.3),
+                severity: seg.severity
+            };
+        });
     };
 
     const regions = buildRegions();
