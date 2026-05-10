@@ -28,6 +28,42 @@ WHEP_TOKEN_TTL = int(os.getenv('SRS_WHEP_TOKEN_TTL_SECONDS', '30'))
 RECORDING_TOKEN_SECRET = os.getenv('RECORDING_TOKEN_SECRET', 'supersecretrecordingtoken')
 RECORDING_TOKEN_TTL = 3600 * 24  # 24 hours for recording playback sessions
 
+WHIP_TOKEN_SECRET = os.getenv('SRS_WHIP_TOKEN_SECRET', 'supersecretwhiptoken')
+WHIP_TOKEN_TTL = 3600  # 1 hour for publish session initialization
+
+
+def _generate_whip_token(user_id, stream_id, ttl=None):
+    ttl = ttl or WHIP_TOKEN_TTL
+    expiry = int(time.time()) + ttl
+    payload = f"{user_id}:{stream_id}:{expiry}"
+    sig = hmac.new(
+        WHIP_TOKEN_SECRET.encode(),
+        payload.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    token = base64.urlsafe_b64encode(f"{payload}:{sig}".encode()).decode()
+    return token
+
+
+def _decode_whip_token(token):
+    try:
+        raw = base64.urlsafe_b64decode(token.encode()).decode()
+        parts = raw.rsplit(':', 1)
+        payload_str, sig = parts[0], parts[1]
+        expected_sig = hmac.new(
+            WHIP_TOKEN_SECRET.encode(),
+            payload_str.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+        user_id, stream_id, expiry_str = payload_str.split(':', 2)
+        if time.time() > int(expiry_str):
+            return None
+        return {'user_id': user_id, 'stream_id': stream_id}
+    except Exception:
+        return None
+
 
 def _generate_whep_token(user_id, stream_id, ttl=None):
     ttl = ttl or WHEP_TOKEN_TTL
@@ -110,11 +146,25 @@ class SRSOnPublishView(APIView):
         if action != 'on_publish':
             return Response({'code': 0})
 
+        # Extract token from query parameters (sent as 'param' by SRS)
+        import urllib.parse
+        param = request.data.get('param', '')
+        parsed = urllib.parse.parse_qs(param.lstrip('?'))
+        token = parsed.get('token', [''])[0]
+
         stream_url = request.data.get('stream', '') or request.data.get('stream_url', '')
         if '/live/' in stream_url:
             stream_key = stream_url.split('/live/')[-1]
         else:
             stream_key = stream_url.strip('/')
+
+        # Security Check: If no token is provided, reject (unless it's local)
+        if not token:
+            return Response({'code': 1, 'detail': 'Missing publish token'}, status=403)
+
+        decoded = _decode_whip_token(token)
+        if not decoded or decoded['stream_id'] != stream_key:
+            return Response({'code': 1, 'detail': 'Invalid or expired publish token'}, status=403)
 
         try:
             live_stream = LiveStream.objects.get(
@@ -426,10 +476,24 @@ class StreamRegisterView(APIView):
             },
         )
 
+        # Generate a publish token for this specific stream
+        whip_token = _generate_whip_token(str(request.user.id), srs_stream_id)
+
+        # Use an environment variable for the public WHIP URL if set, 
+        # otherwise fallback to a best-guess based on the current server IP
+        whip_url = os.getenv('SRS_EXTERNAL_WHIP_URL')
+        if not whip_url:
+            # Fallback: Guess based on the Host header if no environment variable is set
+            host = request.get_host().split(':')[0]
+            whip_url = f"http://{host}:1985/rtc/v1/publish/"
+
         return Response({
             'stream_id': str(live_stream.id),
             'srs_stream_id': live_stream.srs_stream_id,
-            'whip_url': f"http://srs:1985/rtc/v1/publish/",
+            'whip_url': whip_url,
+            'whip_token': whip_token,  # <--- Secure token for publishing
+            'srs_api_user': os.getenv('SRS_API_USERNAME', 'cvsentry_srs'),
+            'srs_api_pass': os.getenv('SRS_API_PASSWORD', ''),
             'stream_url': f"webrtc://srs/live/{live_stream.srs_stream_id}",
         })
 
