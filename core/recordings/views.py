@@ -170,6 +170,17 @@ class SRSOnPublishView(APIView):
             return Response({'code': 1, 'detail': 'Missing publish token'}, status=403)
 
         decoded = _decode_whip_token(token)
+        
+        # Fallback: Try decoding as a JWT if it's not a WHIP token
+        if not decoded and token.startswith('eyJ'):
+            try:
+                from rest_framework_simplejwt.tokens import AccessToken
+                access_token = AccessToken(token)
+                # If we are here, the JWT is valid. We just need the user_id.
+                decoded = {'user_id': str(access_token['user_id']), 'stream_id': stream_key}
+            except Exception:
+                decoded = None
+
         if not decoded or decoded['stream_id'] != stream_key:
             return Response({'code': 1, 'detail': 'Invalid or expired publish token'}, status=403)
 
@@ -253,6 +264,16 @@ class SRSOnPlayView(APIView):
             return Response({'code': 1}, status=403)
 
         decoded = _decode_whep_token(token)
+        
+        # Fallback: Try decoding as a JWT if it's not a WHEP token
+        if not decoded and token.startswith('eyJ'):
+            try:
+                from rest_framework_simplejwt.tokens import AccessToken
+                access_token = AccessToken(token)
+                decoded = {'user_id': str(access_token['user_id']), 'stream_id': stream_key}
+            except Exception:
+                decoded = None
+
         if not decoded:
             return Response({'code': 1}, status=403)
 
