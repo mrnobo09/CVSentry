@@ -1,10 +1,5 @@
 import { useRef, useCallback, useState } from 'react';
-
-interface ThreatSegment {
-    start_ms: number;
-    end_ms: number;
-    severity: 'normal' | 'severe';
-}
+import type { ThreatSegment } from '../types/streaming';
 
 interface Props {
     segments: ThreatSegment[];
@@ -38,7 +33,7 @@ export default function ThreatSeekerBar({ segments, durationMs, currentTimeMs, o
     const buildRegions = () => {
         if (durationMs <= 0 || segments.length === 0) return null;
 
-        return segments.map((seg, i) => {
+        return segments.map((seg) => {
             const left = (seg.start_ms / durationMs) * 100;
             const width = ((seg.end_ms - seg.start_ms) / durationMs) * 100;
             return {

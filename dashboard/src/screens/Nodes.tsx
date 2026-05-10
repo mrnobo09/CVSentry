@@ -1,36 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Monitor, Camera, RefreshCw, ChevronDown, ChevronRight, ExternalLink, Clock } from 'lucide-react';
-import request, { getAccessToken } from '../utils/request';
+import request from '../utils/request';
 import WebRTCPlayer from '../components/WebRTCPlayer';
-
-interface NodeCamera {
-    id: number;
-    camera_id: string;
-    stream_key: string;
-    is_active: boolean;
-    flv_url: string;
-    webrtc_url: string;
-}
-
-interface Node {
-    id: number;
-    user_email: string;
-    label: string;
-    base_url: string;
-    port: number;
-    srs_port: number;
-    webrtc_port: number;
-    last_seen: string;
-    cameras: NodeCamera[];
-}
-
-interface LiveStream {
-    id: string;
-    camera_id: string;
-    srs_stream_id: string;
-    started_at: string;
-    is_active: boolean;
-}
+import type { Node, LiveStream } from '../types/node';
 
 export default function Nodes() {
     const [nodes, setNodes] = useState<Node[]>([]);
@@ -39,7 +11,6 @@ export default function Nodes() {
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
     const [expandedNodeId, setExpandedNodeId] = useState<number | null>(null);
 
-    const accessToken = getAccessToken() ?? '';
 
     const fetchNodes = async () => {
         setIsLoading(true);

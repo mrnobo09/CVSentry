@@ -1,31 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, WifiOff, Eye, EyeOff } from 'lucide-react';
 import request, { getAccessToken } from '../utils/request';
 import DetectionOverlay from './DetectionOverlay';
-
-interface Detection {
-    class_name: string;
-    box: [number, number, number, number];
-    score: number;
-    keypoints?: [number, number][];
-    identity?: string;
-    recognized?: boolean;
-    has_weapon?: boolean;
-    is_aiming?: boolean;
-    aiming_vec?: [number, number];
-    rec_confidence?: number;
-}
-
-interface FrameMetadata {
-    weapon?: Detection[];
-    face?: Detection[];
-    combined_threat?: boolean;
-}
-
-interface ThreatSegment {
-    offset_ms: number;
-    severity: 'normal' | 'severe';
-}
+import type { FrameMetadata } from '../types/streaming';
 
 interface WebRTCPlayerProps {
     cameraId: string;
@@ -42,9 +19,6 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [metadata, setMetadata] = useState<FrameMetadata | null>(null);
     const [overlayEnabled, setOverlayEnabled] = useState(true);
-    const [threatSegments, setThreatSegments] = useState<ThreatSegment[]>([]);
-    const [durationMs, setDurationMs] = useState(0);
-    const [currentTimeMs, setCurrentTimeMs] = useState(0);
     const metadataBuffer = useRef<Map<number, FrameMetadata>>(new Map());
     const frameCounter = useRef(0);
     const metadataPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -225,14 +199,6 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
         };
     }, [cameraId, recordingId]);
 
-    const timeUpdateHandler = useCallback(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        setCurrentTimeMs(video.currentTime * 1000);
-        if (video.duration && isFinite(video.duration)) {
-            setDurationMs(video.duration * 1000);
-        }
-    }, []);
 
     return (
         <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
@@ -268,7 +234,7 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
                     playsInline
                     muted
                     autoPlay
-                    onTimeUpdate={timeUpdateHandler}
+                    onPlay={() => setStatus('live')}
                 />
                 <DetectionOverlay
                     videoRef={videoRef}
@@ -293,11 +259,6 @@ export default function WebRTCPlayer({ cameraId, recordingId }: WebRTCPlayerProp
                 )}
             </div>
 
-            {threatSegments.length > 0 && (
-                <div className="px-3 py-2 border-t border-gray-700 bg-gray-800">
-                    {/* ThreatSeekerBar will be inserted here with actual segment data */}
-                </div>
-            )}
         </div>
     );
 }

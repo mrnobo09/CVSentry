@@ -1,20 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Film, Search, Calendar, Filter, ChevronRight } from 'lucide-react';
+import { Film, Search, Calendar, ChevronRight } from 'lucide-react';
 import request from '../utils/request';
 import RecordingPlayer from '../components/RecordingPlayer';
-
-interface Recording {
-    id: string;
-    node_label: string;
-    camera_id: string;
-    status: string;
-    total_duration_ms: number;
-    total_size_bytes: number;
-    segment_count: number;
-    started_at: string;
-    ended_at: string | null;
-    threat_segments: { offset_ms: number; severity: string }[];
-}
+import type { Recording } from '../types/recording';
 
 export default function Recordings() {
     const [recordings, setRecordings] = useState<Recording[]>([]);
