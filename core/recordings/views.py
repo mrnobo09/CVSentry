@@ -6,6 +6,7 @@ import hashlib
 import base64
 from datetime import datetime, timedelta
 
+from urllib.parse import urlparse
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponse
@@ -487,14 +488,19 @@ class StreamRegisterView(APIView):
             host = request.get_host().split(':')[0]
             whip_url = f"http://{host}:1985/rtc/v1/publish/"
 
+        # Use the same domain for the webrtc stream URL as the WHIP URL
+        
+        parsed_whip = urlparse(whip_url)
+        public_host = parsed_whip.hostname
+        
         return Response({
             'stream_id': str(live_stream.id),
             'srs_stream_id': live_stream.srs_stream_id,
             'whip_url': whip_url,
-            'whip_token': whip_token,  # <--- Secure token for publishing
+            'whip_token': whip_token,
             'srs_api_user': os.getenv('SRS_API_USERNAME', 'cvsentry_srs'),
             'srs_api_pass': os.getenv('SRS_API_PASSWORD', ''),
-            'stream_url': f"webrtc://srs/live/{live_stream.srs_stream_id}",
+            'stream_url': f"webrtc://{public_host}/live/{live_stream.srs_stream_id}",
         })
 
 
