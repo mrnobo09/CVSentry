@@ -382,8 +382,19 @@ class StreamWHEPURLView(APIView):
             live_stream.srs_stream_id,
         )
 
-        srs_whep_url = f"{SRS_EXTERNAL_API_URL}/rtc/v1/play/"
-        stream_url = f"webrtc://localhost/live/{live_stream.srs_stream_id}"
+        # Use the public domain for WHEP signaling and stream identification
+        whip_url = os.getenv('SRS_EXTERNAL_WHIP_URL', '')
+        if whip_url:
+            from urllib.parse import urlparse
+            public_host = urlparse(whip_url).hostname
+            # Use HTTPS for signaling if WHIP is HTTPS
+            scheme = "https" if whip_url.startswith("https") else "http"
+            srs_whep_url = f"{scheme}://{public_host}/rtc/v1/whep/"
+            stream_url = f"webrtc://{public_host}/live/{live_stream.srs_stream_id}"
+        else:
+            host = request.get_host().split(':')[0]
+            srs_whep_url = f"http://{host}:1985/rtc/v1/play/"
+            stream_url = f"webrtc://{host}/live/{live_stream.srs_stream_id}"
 
         return Response({
             'whep_url': srs_whep_url,
