@@ -18,7 +18,7 @@ RUN apt-get update && \
 
 # Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 # Copy the application code
 COPY . . 
