@@ -9,3 +9,9 @@ __pycache__/
 core/keys/
 
 core/media/faces/*
+
+dashboard/node_modules/*
+dashboard/dist/*
+
+certbot/conf/
+certbot/www/

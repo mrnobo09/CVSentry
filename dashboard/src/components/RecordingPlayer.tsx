@@ -3,31 +3,7 @@ import { Play, Pause, Eye, EyeOff, Loader } from 'lucide-react';
 import request from '../utils/request';
 import DetectionOverlay from './DetectionOverlay';
 import ThreatSeekerBar from './ThreatSeekerBar';
-
-interface Detection {
-    class_name: string;
-    box: [number, number, number, number];
-    score: number;
-    keypoints?: [number, number][];
-    identity?: string;
-    recognized?: boolean;
-    has_weapon?: boolean;
-    is_aiming?: boolean;
-    aiming_vec?: [number, number];
-    rec_confidence?: number;
-}
-
-interface FrameMetadata {
-    weapon?: Detection[];
-    face?: Detection[];
-    combined_threat?: boolean;
-}
-
-interface ThreatSegment {
-    start_ms: number;
-    end_ms: number;
-    severity: 'normal' | 'severe';
-}
+import type { FrameMetadata, ThreatSegment } from '../types/streaming';
 
 interface RecordingPlayerProps {
     recordingId: string;
@@ -150,9 +126,6 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
                     });
                     hlsRef.current = hls;
 
-                    const token = (await import('../utils/request')).getAccessToken();
-                    const xhrSetup = hls.on;
-                    
                     hls.loadSource(manifestUrl);
                     hls.attachMedia(videoRef.current!);
 

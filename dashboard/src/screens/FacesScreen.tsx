@@ -1,23 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { UserCircle, Upload, Trash2, Search, Plus, X, Loader2, ImagePlus, Images } from 'lucide-react';
+import { UserCircle, Trash2, Search, Plus, X, Loader2, ImagePlus, Images } from 'lucide-react';
 import request from '../utils/request';
-
-interface FaceImageData {
-    id: string;
-    image: string;
-    created_at: string;
-}
-
-interface FaceIdentity {
-    id: string;
-    name: string;
-    qdrant_id: string;
-    images: FaceImageData[];
-    image_count: number;
-    is_active: boolean;
-    updated_at: string;
-    is_global: boolean;
-}
+import type { FaceIdentity } from '../types/face';
 
 const MIN_IMAGES = 4;
 const MAX_IMAGES = 5;
