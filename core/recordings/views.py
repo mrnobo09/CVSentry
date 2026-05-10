@@ -154,12 +154,18 @@ class SRSOnPublishView(APIView):
         token = parsed.get('token', [''])[0]
 
         stream_url = request.data.get('stream', '') or request.data.get('stream_url', '')
-        if '/live/' in stream_url:
-            stream_key = stream_url.split('/live/')[-1]
-        else:
-            stream_key = stream_url.strip('/')
+        
+        # Fallback: If token is missing in param, check if it's in the stream URL
+        if not token and '?' in stream_url:
+            parsed_stream = urllib.parse.parse_qs(urllib.parse.urlparse(stream_url).query)
+            token = parsed_stream.get('token', [''])[0]
 
-        # Security Check: If no token is provided, reject (unless it's local)
+        if '/live/' in stream_url:
+            stream_key = stream_url.split('/live/')[-1].split('?')[0]
+        else:
+            stream_key = stream_url.strip('/').split('?')[0]
+
+        # Security Check: If no token is provided, reject
         if not token:
             return Response({'code': 1, 'detail': 'Missing publish token'}, status=403)
 
@@ -232,10 +238,16 @@ class SRSOnPlayView(APIView):
         token = parsed.get('token', [''])[0]
 
         stream_url = request.data.get('stream', '') or request.data.get('stream_url', '')
+
+        # Fallback: If token is missing in param, check if it's in the stream URL
+        if not token and '?' in stream_url:
+            parsed_stream = urllib.parse.parse_qs(urllib.parse.urlparse(stream_url).query)
+            token = parsed_stream.get('token', [''])[0]
+
         if '/live/' in stream_url:
-            stream_key = stream_url.split('/live/')[-1]
+            stream_key = stream_url.split('/live/')[-1].split('?')[0]
         else:
-            stream_key = stream_url.strip('/')
+            stream_key = stream_url.strip('/').split('?')[0]
 
         if not token:
             return Response({'code': 1}, status=403)
@@ -389,7 +401,8 @@ class StreamWHEPURLView(APIView):
             public_host = urlparse(whip_url).hostname
             # Use HTTPS for signaling if WHIP is HTTPS
             scheme = "https" if whip_url.startswith("https") else "http"
-            srs_whep_url = f"{scheme}://{public_host}/rtc/v1/whep/"
+            # Use the standard WHEP path: /rtc/v1/whep/app/stream
+            srs_whep_url = f"{scheme}://{public_host}/rtc/v1/whep/live/{live_stream.srs_stream_id}"
             stream_url = f"webrtc://{public_host}/live/{live_stream.srs_stream_id}"
         else:
             host = request.get_host().split(':')[0]
