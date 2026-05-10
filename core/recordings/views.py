@@ -422,8 +422,8 @@ class StreamWHEPURLView(APIView):
             public_host = urlparse(whip_url).hostname
             # Use HTTPS for signaling if WHIP is HTTPS
             scheme = "https" if whip_url.startswith("https") else "http"
-            # Use the standard WHEP path: /rtc/v1/whep/app/stream
-            srs_whep_url = f"{scheme}://{public_host}/rtc/v1/whep/live/{live_stream.srs_stream_id}"
+            # SRS 6 expects the base WHEP endpoint; stream ID is passed in the JSON body
+            srs_whep_url = f"{scheme}://{public_host}/rtc/v1/whep/"
             stream_url = f"webrtc://{public_host}/live/{live_stream.srs_stream_id}"
         else:
             host = request.get_host().split(':')[0]
