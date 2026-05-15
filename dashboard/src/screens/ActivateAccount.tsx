@@ -48,33 +48,31 @@ export default function ActivateAccount() {
     };
 
     return (
-        <PageTransition className="w-screen h-screen grid md:grid-cols-2">
-            <img src={loginBackground} className="w-full h-full hidden md:block object-cover" />
-            <div className="w-full h-full bg-gradient-to-br from-[#0E1139] to-[#020515] grid place-items-center p-4">
-                <SlideUp className="w-full max-w-md text-center">
-                    <div className="flex justify-center mb-6">
-                        {status === 'loading' && <div className="w-20 h-20 bg-[#0970F0]/20 rounded-full grid place-items-center"><SpinnerLoader /></div>}
-                        {status === 'success' && <div className="w-20 h-20 bg-green-500/20 rounded-full grid place-items-center"><CheckCircle className="w-10 h-10 text-green-500" /></div>}
-                        {status === 'error' && <div className="w-20 h-20 bg-red-500/20 rounded-full grid place-items-center"><XCircle className="w-10 h-10 text-red-500" /></div>}
-                    </div>
+        <PageTransition className="w-screen h-screen flex items-center justify-center p-0 md:p-6 bg-transparent">
+            <SlideUp className="w-full h-full md:h-auto md:max-w-md bg-white/5 backdrop-blur-xl border-0 md:border border-white/10 rounded-none md:rounded-2xl p-8 md:p-10 flex flex-col justify-center shadow-2xl text-center">
+                <div className="flex justify-center mb-6">
+                    {status === 'loading' && <div className="w-20 h-20 bg-[#0970F0]/20 rounded-full grid place-items-center"><SpinnerLoader /></div>}
+                    {status === 'success' && <div className="w-20 h-20 bg-emerald-500/20 rounded-full grid place-items-center"><CheckCircle className="w-10 h-10 text-emerald-400" /></div>}
+                    {status === 'error' && <div className="w-20 h-20 bg-red-500/20 rounded-full grid place-items-center"><XCircle className="w-10 h-10 text-red-400" /></div>}
+                </div>
 
-                    <div className="text-white mb-8">
-                        <img src={CVSentryLogo} className="w-20 mx-auto mb-4 block md:hidden" />
-                        <h1 className="text-[2rem] font-bold mb-2">Account Activation</h1>
+                <div className="mb-8">
+                    <img src={CVSentryLogo} className="w-16 mx-auto mb-6" alt="CVSentry Logo" />
+                    <h1 className="text-2xl font-bold text-white mb-2">Account Activation</h1>
 
-                        {status === 'loading' && (
-                            <p className="opacity-80 text-lg">Please wait while we activate your account...</p>
-                        )}
-                        {status === 'success' && (
-                            <p className="opacity-80 text-lg">Account activated successfully! Redirecting to login...</p>
-                        )}
-                        {status === 'error' && resendStatus !== 'success' && (
-                            <p className="opacity-80 text-lg mb-4">Failed to activate account. The link may be invalid or expired. Enter your email to resend.</p>
-                        )}
-                        {resendStatus === 'success' && (
-                            <p className="text-green-400 text-lg">A new activation link has been sent to your email!</p>
-                        )}
-                    </div>
+                    {status === 'loading' && (
+                        <p className="text-gray-400 text-sm">Please wait while we activate your account...</p>
+                    )}
+                    {status === 'success' && (
+                        <p className="text-gray-400 text-sm">Account activated successfully! Redirecting to login...</p>
+                    )}
+                    {status === 'error' && resendStatus !== 'success' && (
+                        <p className="text-gray-400 text-sm mb-4">Failed to activate account. The link may be invalid or expired. Enter your email to resend.</p>
+                    )}
+                    {resendStatus === 'success' && (
+                        <p className="text-emerald-400 text-sm font-semibold">A new activation link has been sent to your email!</p>
+                    )}
+                </div>
 
                     {status === 'error' && resendStatus !== 'success' && (
                         <div className="grid gap-4 mt-4 text-left">
@@ -98,8 +96,7 @@ export default function ActivateAccount() {
                             </button>
                         </div>
                     )}
-                </SlideUp>
-            </div>
+            </SlideUp>
         </PageTransition>
     );
 }

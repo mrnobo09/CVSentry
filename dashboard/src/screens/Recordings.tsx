@@ -18,7 +18,7 @@ export default function Recordings() {
             if (filterDate) params.date = filterDate;
             const data = await request.get('/api/v1/recordings/', { params });
             setRecordings(data || []);
-        } catch {} finally {
+        } catch { } finally {
             setIsLoading(false);
         }
     };
@@ -51,7 +51,7 @@ export default function Recordings() {
 
     if (selectedRecording) {
         return (
-            <div className="min-h-screen bg-gray-950 text-gray-100 pt-20 pb-12 px-6">
+            <div className="min-h-screen bg-transparent text-gray-100 pt-8 pb-28 px-4 sm:pt-28 sm:pb-12 sm:px-8">
                 <div className="max-w-7xl mx-auto">
                     <button
                         onClick={() => setSelectedRecording(null)}
@@ -67,7 +67,7 @@ export default function Recordings() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100 pt-20 pb-12 px-6">
+        <div className="min-h-screen bg-transparent text-gray-100 pt-8 pb-28 px-4 sm:pt-28 sm:pb-12 sm:px-8">
             <div className="max-w-7xl mx-auto">
 
                 <header className="mb-8">
@@ -79,28 +79,28 @@ export default function Recordings() {
 
                 <div className="flex flex-wrap gap-3 mb-6">
                     <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search by camera or node…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm transition-all duration-300"
                         />
                     </div>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="date"
                             value={filterDate}
                             onChange={(e) => setFilterDate(e.target.value)}
-                            className="pl-9 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"
+                            className="pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:dark] backdrop-blur-sm transition-all duration-300"
                         />
                     </div>
                 </div>
 
                 {!isLoading && filtered.length === 0 && (
-                    <div className="text-center py-24 border border-gray-800 rounded-2xl bg-gray-900/30 text-gray-500">
+                    <div className="text-center py-32 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl text-gray-400">
                         <Film className="w-16 h-16 mx-auto mb-4 opacity-20" />
                         <p className="text-lg font-semibold mb-1">No recordings found</p>
                         <p className="text-sm">Recordings from live streams will appear here automatically.</p>
@@ -112,25 +112,23 @@ export default function Recordings() {
                         <button
                             key={rec.id}
                             onClick={() => setSelectedRecording(rec.id)}
-                            className="flex items-center gap-4 w-full text-left px-5 py-4 bg-gray-900/60 border border-gray-800 rounded-xl hover:border-gray-700 hover:bg-gray-900 transition-colors"
+                            className="flex items-center gap-4 w-full text-left px-5 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl hover:border-blue-500/40 hover:bg-white/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group"
                         >
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                                rec.status === 'recording' ? 'bg-red-900/30' :
-                                rec.status === 'completed' ? 'bg-green-900/30' :
-                                'bg-gray-800'
-                            }`}>
-                                <Film className={`w-5 h-5 ${
-                                    rec.status === 'recording' ? 'text-red-400 animate-pulse' :
-                                    rec.status === 'completed' ? 'text-green-400' :
-                                    'text-gray-500'
-                                }`} />
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${rec.status === 'recording' ? 'bg-red-900/30' :
+                                rec.status === 'completed' ? 'bg-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.2)]' :
+                                    'bg-white/10'
+                                }`}>
+                                <Film className={`w-5 h-5 ${rec.status === 'recording' ? 'text-red-400 animate-pulse' :
+                                    rec.status === 'completed' ? 'text-emerald-400' :
+                                        'text-gray-400'
+                                    }`} />
                             </div>
 
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-white truncate">
                                     {rec.camera_id.replace(/_/g, ' ')}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-gray-400 mt-0.5">
                                     {rec.node_label || 'Unknown node'}
                                     <span className="mx-1.5 text-gray-700">·</span>
                                     {new Date(rec.started_at).toLocaleString()}
@@ -160,17 +158,16 @@ export default function Recordings() {
                                     </>
                                 )}
                                 {(!rec.threat_segments || rec.threat_segments.length === 0) && (
-                                    <span className="px-2 py-0.5 bg-gray-800 text-gray-500 rounded text-xs">
+                                    <span className="px-2 py-0.5 bg-white/10 text-gray-400 rounded text-xs">
                                         No threats
                                     </span>
                                 )}
                             </div>
 
-                            <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase shrink-0 ${
-                                rec.status === 'recording' ? 'bg-red-900/50 text-red-300' :
-                                rec.status === 'completed' ? 'bg-green-900/50 text-green-300' :
-                                'bg-gray-800 text-gray-500'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase shrink-0 ${rec.status === 'recording' ? 'bg-red-900/50 text-red-300' :
+                                rec.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                    'bg-white/10 text-gray-400 border border-white/10'
+                                }`}>
                                 {rec.status}
                             </span>
 

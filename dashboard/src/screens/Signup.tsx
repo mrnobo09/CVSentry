@@ -51,16 +51,14 @@ export default function Signup() {
     };
 
     return (
-        <PageTransition className="w-screen h-screen grid md:grid-cols-2">
-            <img src={loginBackground} className="w-full h-full hidden md:block object-cover" />
-            <div className="w-full h-full bg-gradient-to-br from-[#0E1139] to-[#020515] grid place-items-center p-4">
-                <SlideUp className="w-full max-w-md">
-                    {/* Header Section */}
-                    <div className="text-center md:text-left text-white mb-8">
-                        <img src={CVSentryLogo} className="w-20 mx-auto mb-4 block md:hidden" />
-                        <h1 className="text-[2rem] font-bold">Create Account</h1>
-                        <h6 className="opacity-80">Join CVSentry today</h6>
-                    </div>
+        <PageTransition className="w-screen h-screen flex items-center justify-center p-0 md:p-6 bg-transparent">
+            <SlideUp className="w-full h-full md:h-auto md:max-w-md bg-white/5 backdrop-blur-xl border-0 md:border border-white/10 rounded-none md:rounded-2xl p-8 md:p-10 flex flex-col justify-center shadow-2xl">
+                {/* Header Section */}
+                <div className="text-center mb-8">
+                    <img src={CVSentryLogo} className="w-16 mx-auto mb-6" alt="CVSentry Logo" />
+                    <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
+                    <p className="text-gray-400 text-sm">Join CVSentry today</p>
+                </div>
 
                     {/* Form Section */}
                     <div className="grid gap-4">
@@ -95,8 +93,7 @@ export default function Signup() {
                             Already have an account? <Link to="/login" className="text-[#0970F0] hover:text-[#0970F0]/80 font-semibold">Sign In</Link>
                         </div>
                     </div>
-                </SlideUp>
-            </div>
+            </SlideUp>
         </PageTransition>
     );
 }

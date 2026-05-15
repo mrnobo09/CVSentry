@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 * {
-  color:white;
+  color: white;
   box-sizing: border-box;
 }
 
@@ -18,14 +18,71 @@
   --font-weight-bold: 700;
 
   /* Font Sizes */
-  --text-xxs: 0.625rem; /* 10px */
-  --text-xs: 0.75rem;   /* 12px */
-  --text-sm: 0.875rem;  /* 14px */
-  --text-md: 1rem;      /* 16px */
-  --text-lg: 1.125rem;  /* 18px */
-  --text-xl: 1.25rem;   /* 20px */
+  --text-xxs: 0.625rem;
+  /* 10px */
+  --text-xs: 0.75rem;
+  /* 12px */
+  --text-sm: 0.875rem;
+  /* 14px */
+  --text-md: 1rem;
+  /* 16px */
+  --text-lg: 1.125rem;
+  /* 18px */
+  --text-xl: 1.25rem;
+  /* 20px */
 }
 
-body{
-    background: linear-gradient(135deg, #0E091E 50%, #3343AF 100%);
+body {
+  background-color: #0E091E;
+  position: relative;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 20% 30%, rgba(51, 67, 175, 0.5) 0%, rgba(14, 9, 30, 0) 30%),
+    radial-gradient(circle at 80% 20%, rgba(56, 47, 226, 0.522) 0%, rgba(14, 9, 30, 0) 20%),
+    radial-gradient(circle at 40% 70%, rgba(59, 130, 246, 0.5) 0%, rgba(14, 9, 30, 0) 25%),
+    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.2) 0%, rgba(14, 9, 30, 0) 20%);
+  animation: backgroundGlow 18s ease-in-out infinite alternate;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes backgroundGlow {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+
+  25% {
+    transform: translate(-3%, 2%) scale(1.05) rotate(1deg);
+  }
+
+  50% {
+    transform: translate(2%, -4%) scale(1.1) rotate(-1deg);
+  }
+
+  75% {
+    transform: translate(-2%, 3%) scale(1.05) rotate(2deg);
+  }
+
+  100% {
+    transform: translate(3%, -2%) scale(1) rotate(0deg);
+  }
+}
+
+/* Rim Light Effect for all glassmorphic components */
+.bg-white\/5,
+.bg-slate-900\/60,
+.bg-slate-950\/80,
+nav,
+.backdrop-blur-md,
+.backdrop-blur-xl {
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000), inset 0 1px 1px 0 rgba(117, 191, 240, 0.638) !important;
 }
