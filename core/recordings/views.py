@@ -160,6 +160,13 @@ class SRSOnPublishView(APIView):
             parsed_stream = urllib.parse.parse_qs(urllib.parse.urlparse(stream_url).query)
             token = parsed_stream.get('token', [''])[0]
 
+        # Clean double-appended tokens caused by client & server both appending
+        if token:
+            if '?token=' in token:
+                token = token.split('?token=')[0]
+            elif '&token=' in token:
+                token = token.split('&token=')[0]
+
         if '/live/' in stream_url:
             stream_key = stream_url.split('/live/')[-1].split('?')[0]
         else:
