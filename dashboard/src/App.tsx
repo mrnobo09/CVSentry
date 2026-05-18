@@ -57,9 +57,8 @@ function PublicRoutes() {
 function AppContent() {
   const { isAuthenticated } = useAuth();
 
-  // null means auth check is still in-flight
   if (isAuthenticated === null) {
-    return <div className="w-screen h-screen bg-gray-950" />;
+    return <div className="w-screen h-screen bg-transparent" />;
   }
 
   if (isAuthenticated === true) {

@@ -47,7 +47,7 @@ export default function Alerts() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100 pt-20 pb-12 px-6">
+        <div className="min-h-screen bg-transparent text-gray-100 pt-8 pb-28 px-4 sm:pt-28 sm:pb-12 sm:px-8">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
@@ -61,39 +61,38 @@ export default function Alerts() {
 
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-3 mb-6">
-                    <div className="relative flex-1 min-w-[200px] max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search camera, node, identity…"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-300"
                         />
                     </div>
-                    
+
                     <div className="relative max-w-xs">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="date"
                             value={dateFilter}
                             onChange={e => setDateFilter(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [color-scheme:dark]"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [color-scheme:dark] backdrop-blur-sm transition-all duration-300"
                         />
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-gray-500" />
+                        <Filter className="w-4 h-4 text-gray-400" />
                         {['ALL', 'NORMAL', 'SEVERE'].map(sev => (
                             <button
                                 key={sev}
                                 onClick={() => setSeverityFilter(sev)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                                    severityFilter === sev
-                                        ? sev === 'SEVERE' ? 'bg-red-600/20 border-red-500/40 text-red-300' 
-                                            : 'bg-yellow-600/20 border-yellow-500/40 text-yellow-300'
-                                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
-                                }`}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${severityFilter === sev
+                                    ? sev === 'SEVERE' ? 'bg-red-600/20 border-red-500/40 text-red-300'
+                                        : 'bg-yellow-600/20 border-yellow-500/40 text-yellow-300'
+                                    : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`}
                             >
                                 {sev}
                             </button>
@@ -103,20 +102,20 @@ export default function Alerts() {
 
                 {/* Table */}
                 {isLoading ? (
-                    <div className="text-center py-24 text-gray-500">
+                    <div className="text-center py-24 text-gray-400">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3" />
                         Loading history…
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-24 border border-gray-800 rounded-2xl bg-gray-900/40 text-gray-500">
+                    <div className="text-center py-32 px-12 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl text-gray-400">
                         <ShieldAlert className="w-12 h-12 mx-auto mb-4 opacity-20" />
                         <p className="text-lg font-semibold">No threats found</p>
                         <p className="text-sm mt-1">Adjust your filters or date selection to see historical data.</p>
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-gray-800 overflow-hidden">
+                    <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/5 backdrop-blur-md shadow-xl">
                         {/* Table header */}
-                        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_auto] gap-4 px-5 py-3 bg-gray-800/60 border-b border-gray-700 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_auto] gap-4 px-5 py-3 bg-black/20 border-b border-white/10 text-xs font-semibold text-gray-300 uppercase tracking-wider">
                             <span>Time & Duration</span>
                             <span>Node / Camera</span>
                             <span>Weapons</span>
@@ -125,19 +124,19 @@ export default function Alerts() {
                         </div>
 
                         {/* Rows */}
-                        <div className="divide-y divide-gray-800">
+                        <div className="divide-y divide-white/5">
                             {filtered.map(alert => (
                                 <div
                                     key={alert.id}
                                     className="grid grid-cols-[1fr_1fr_1fr_2fr_auto] gap-4 px-5 py-3.5
-                                        hover:bg-gray-800/40 transition-colors items-center"
+                                        hover:bg-white/10 transition-colors items-center duration-200"
                                 >
                                     <div>
                                         <div className="flex items-center gap-1.5 text-xs text-gray-300 font-medium">
                                             <Clock className="w-3.5 h-3.5 shrink-0" />
                                             <span>{new Date(alert.timestamp).toLocaleTimeString()}</span>
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-0.5 ml-5">
+                                        <div className="text-xs text-gray-400 mt-0.5 ml-5">
                                             {new Date(alert.timestamp).toLocaleDateString()}
                                             <span className="mx-1">•</span>
                                             {formatDuration(alert.timestamp, alert.updated_at)}
@@ -148,7 +147,7 @@ export default function Alerts() {
                                         <div className="text-sm text-gray-300 truncate" title={alert.node_label}>
                                             {alert.node_label || alert.node_ip}
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
                                             <Camera className="w-3.5 h-3.5 shrink-0 text-gray-600" />
                                             <span className="font-mono">{alert.camera_id}</span>
                                         </div>

@@ -89,7 +89,7 @@ export default function FacesScreen() {
             cancelUpload();
             fetchFaces();
         } catch (err: any) {
-            const detail = err?.response?.data?.detail 
+            const detail = err?.response?.data?.detail
                 || err?.response?.data?.images?.join(', ')
                 || 'Upload failed. Ensure each image contains a clear face.';
             setUploadError(detail);
@@ -122,11 +122,11 @@ export default function FacesScreen() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100 pt-20 pb-12 px-6">
+        <div className="min-h-screen bg-transparent text-gray-100 pt-8 pb-28 px-4 sm:pt-28 sm:pb-12 sm:px-8">
             <div className="max-w-5xl mx-auto">
 
                 {/* Header */}
-                <div className="mb-8 flex items-center justify-between">
+                <div className="mb-8 flex gap-10 items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                             <UserCircle className="w-8 h-8 text-indigo-400" />
@@ -138,35 +138,35 @@ export default function FacesScreen() {
                     </div>
                     <button
                         onClick={() => setShowUpload(true)}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-white text-sm font-semibold transition-all duration-300 shadow-lg border border-blue-500/30 backdrop-blur-md sm:aspect-auto aspect-square min-w-[44px]"
                     >
-                        <Plus className="w-4 h-4" />
-                        Add Identity
+                        <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Add Identity</span>
                     </button>
                 </div>
 
                 {/* Search */}
-                <div className="relative max-w-xs mb-6">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <div className="relative w-full sm:max-w-md mb-6">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by name…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-300"
                     />
                 </div>
 
                 {/* Upload Modal */}
                 {showUpload && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                        <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-5 sm:p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto backdrop-blur-xl">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                     <Images className="w-5 h-5 text-indigo-400" />
                                     New Identity
                                 </h2>
-                                <button onClick={cancelUpload} className="text-gray-500 hover:text-white transition-colors">
+                                <button onClick={cancelUpload} className="text-gray-400 hover:text-white transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -178,7 +178,7 @@ export default function FacesScreen() {
                                 placeholder="e.g. John Doe"
                                 value={uploadName}
                                 onChange={e => setUploadName(e.target.value)}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
+                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4 transition-all"
                             />
 
                             {/* Image Upload Area */}
@@ -186,7 +186,7 @@ export default function FacesScreen() {
                                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     Face Photos ({uploadFiles.length}/{MAX_IMAGES})
                                 </label>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-400">
                                     {uploadFiles.length < MIN_IMAGES
                                         ? `${MIN_IMAGES - uploadFiles.length} more needed`
                                         : '✓ Ready'
@@ -198,7 +198,7 @@ export default function FacesScreen() {
                             <div className="grid grid-cols-5 gap-2 mb-4">
                                 {uploadPreviews.map((preview, i) => (
                                     <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-700">
-                                        <img src={preview} alt={`Photo ${i+1}`} className="w-full h-full object-cover" />
+                                        <img src={preview} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                                         <button
                                             onClick={() => removeImage(i)}
                                             className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -228,16 +228,15 @@ export default function FacesScreen() {
                                 {Array.from({ length: MAX_IMAGES }).map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`h-1 flex-1 rounded-full transition-colors ${
-                                            i < uploadFiles.length
-                                                ? i < MIN_IMAGES ? 'bg-indigo-500' : 'bg-emerald-500'
-                                                : i < MIN_IMAGES ? 'bg-gray-700' : 'bg-gray-800'
-                                        }`}
+                                        className={`h-1 flex-1 rounded-full transition-colors ${i < uploadFiles.length
+                                            ? i < MIN_IMAGES ? 'bg-indigo-500' : 'bg-emerald-500'
+                                            : i < MIN_IMAGES ? 'bg-gray-700' : 'bg-gray-800'
+                                            }`}
                                     />
                                 ))}
                             </div>
 
-                            <p className="text-xs text-gray-500 mb-4">
+                            <p className="text-xs text-gray-400 mb-4">
                                 Upload {MIN_IMAGES}-{MAX_IMAGES} clear photos of the same person from different angles for best accuracy.
                             </p>
 
@@ -268,7 +267,7 @@ export default function FacesScreen() {
                                 <button
                                     onClick={handleUpload}
                                     disabled={isUploading || uploadFiles.length < MIN_IMAGES}
-                                    className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(37,99,235,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isUploading ? (
                                         <>
@@ -286,12 +285,12 @@ export default function FacesScreen() {
 
                 {/* Face Grid */}
                 {isLoading ? (
-                    <div className="text-center py-24 text-gray-500">
+                    <div className="text-center py-24 text-gray-400">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-3" />
                         Loading identities…
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-24 border border-gray-800 rounded-2xl bg-gray-900/40 text-gray-500">
+                    <div className="text-center py-32 px-8 border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl text-gray-400">
                         <UserCircle className="w-16 h-16 mx-auto mb-4 opacity-20" />
                         <p className="text-lg font-semibold">No identities yet</p>
                         <p className="text-sm mt-1">Upload 4-5 face photos per person to start recognizing them on your cameras.</p>
@@ -301,10 +300,10 @@ export default function FacesScreen() {
                         {filtered.map(face => (
                             <div
                                 key={face.id}
-                                className="group bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden hover:border-indigo-500/40 transition-all"
+                                className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/40 hover:bg-white/10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
                                 {/* Image mosaic — show up to 4 images in a grid, or first image as hero */}
-                                <div className="h-48 bg-gray-800 overflow-hidden">
+                                <div className="h-48 bg-black/20 overflow-hidden">
                                     {face.images && face.images.length > 0 ? (
                                         face.images.length === 1 ? (
                                             <img
@@ -318,7 +317,7 @@ export default function FacesScreen() {
                                                     <img
                                                         key={img.id}
                                                         src={`${BASE_URL}${img.image}`}
-                                                        alt={`${face.name} ${i+1}`}
+                                                        alt={`${face.name} ${i + 1}`}
                                                         className="w-full h-full object-cover"
                                                     />
                                                 ))}
@@ -332,10 +331,10 @@ export default function FacesScreen() {
                                 </div>
 
                                 {/* Info */}
-                                <div className="p-4 flex items-center justify-between">
+                                <div className="p-5 sm:p-6 flex items-center justify-between">
                                     <div>
                                         <p className="text-sm font-semibold text-white">{face.name}</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
+                                        <p className="text-xs text-gray-400 mt-0.5">
                                             {face.image_count} photo{face.image_count !== 1 ? 's' : ''} · Added {new Date(face.updated_at).toLocaleDateString()}
                                         </p>
                                     </div>

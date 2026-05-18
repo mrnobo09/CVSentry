@@ -56,17 +56,14 @@ export default function Login() {
     }
 
     return (
-        <PageTransition className="w-screen h-screen grid md:grid-cols-2">
-            <img src={loginBackground} className="w-full h-full hidden md:block object-cover" />
-            <div className="w-full h-full bg-gradient-to-br from-[#0E1139] to-[#020515]  grid place-items-center ">
-                <SlideUp className="w-auto h-auto">
-
-                    {/* Header Section */}
-                    <div className="text-center md:text-left text-white">
-                        <img src={CVSentryLogo} className="w-20 mx-auto mb-4 block md:hidden" />
-                        <h1 className="text-[2rem] font-bold">Welcome Back!</h1>
-                        <h6>Enter Your Credentials To Sign In</h6>
-                    </div>
+        <PageTransition className="w-screen h-screen flex items-center justify-center p-0 md:p-6 bg-transparent">
+            <SlideUp className="w-full h-full md:h-auto md:max-w-md bg-white/5 backdrop-blur-xl border-0 md:border border-white/10 rounded-none md:rounded-2xl p-8 md:p-10 flex flex-col justify-center shadow-2xl">
+                {/* Header Section */}
+                <div className="text-center mb-8">
+                    <img src={CVSentryLogo} className="w-16 mx-auto mb-6" alt="CVSentry Logo" />
+                    <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+                    <p className="text-gray-400 text-sm">Enter your credentials to sign in</p>
+                </div>
 
                     {/* Form Section */}
                     <div className="grid gap-4 mt-8">
@@ -91,8 +88,7 @@ export default function Login() {
                         </div>
                     </div>
 
-                </SlideUp>
-            </div>
+            </SlideUp>
         </PageTransition>
     )
 }

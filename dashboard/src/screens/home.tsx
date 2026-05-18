@@ -25,7 +25,7 @@ export default function Home() {
     const recentAlerts = alerts.slice(0, 5);
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100 pt-24 pb-12 px-6">
+        <div className="min-h-screen bg-transparent text-gray-100 pt-8 pb-28 px-4 sm:pt-28 sm:pb-12 sm:px-8">
             <div className="max-w-7xl mx-auto">
 
                 {/* Hero */}
@@ -66,12 +66,12 @@ export default function Home() {
                         <Link
                             key={label}
                             to={href}
-                            className={`group bg-gray-900 border rounded-2xl p-6 flex items-center gap-5
-                                border-gray-800 hover:border-${color}-500/40 transition-all`}
+                            className={`group bg-white/5 backdrop-blur-md border rounded-2xl p-4 sm:p-6 flex items-center gap-4 sm:gap-5
+                                border-white/10 hover:border-${color}-500/50 hover:bg-white/10 hover:scale-[1.02] transition-all duration-300 shadow-lg`}
                         >
                             <div className={`w-14 h-14 rounded-xl flex items-center justify-center
-                                bg-${color}-600/10 border border-${color}-500/20
-                                group-hover:border-${color}-500/40 transition-colors`}>
+                                bg-${color}-500/20 border border-${color}-500/30
+                                group-hover:bg-${color}-500/30 transition-colors duration-300`}>
                                 <Icon className={`w-7 h-7 text-${color}-400`} />
                             </div>
                             <div>
@@ -86,8 +86,8 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     {/* Recent Alerts */}
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+                        <div className="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                                 <ShieldAlert className="w-5 h-5 text-red-400" />
                                 Recent Alerts
@@ -100,16 +100,16 @@ export default function Home() {
                             </Link>
                         </div>
 
-                        <div className="divide-y divide-gray-800">
+                        <div className="divide-y divide-white/5">
                             {recentAlerts.length === 0 ? (
-                                <div className="px-6 py-12 text-center text-gray-600">
+                                <div className="px-4 sm:px-6 py-20 text-center text-gray-400">
                                     <Activity className="w-10 h-10 mx-auto mb-3 opacity-20" />
                                     <p className="text-sm">No alerts yet. System is monitoring.</p>
                                 </div>
                             ) : recentAlerts.map(alert => (
-                                <div key={alert.id} className="px-6 py-3.5 flex items-start gap-3 hover:bg-gray-800/40 transition-colors">
-                                    <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0
-                                        ${alert.severity === 'severe' ? 'bg-red-500' : 'bg-yellow-500'}`}
+                                <div key={alert.id} className="px-4 sm:px-6 py-3.5 flex items-start gap-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                    <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px_rgba(0,0,0,0.5)]
+                                        ${alert.severity === 'severe' ? 'bg-red-500 shadow-red-500/50' : 'bg-yellow-500 shadow-yellow-500/50'}`}
                                     />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export default function Home() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
                                             <span className="font-mono">{alert.camera_id}</span>
                                             <span>·</span>
                                             <span>{alert.node_label || alert.node_ip}</span>
@@ -138,8 +138,8 @@ export default function Home() {
                     </div>
 
                     {/* Node Quick View */}
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+                        <div className="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                                 <Monitor className="w-5 h-5 text-blue-400" />
                                 Connected Nodes
@@ -152,22 +152,22 @@ export default function Home() {
                             </Link>
                         </div>
 
-                        <div className="divide-y divide-gray-800">
+                        <div className="divide-y divide-white/5">
                             {nodes.length === 0 ? (
-                                <div className="px-6 py-12 text-center text-gray-600">
+                                <div className="px-4 sm:px-6 py-20 text-center text-gray-400">
                                     <Monitor className="w-10 h-10 mx-auto mb-3 opacity-20" />
                                     <p className="text-sm">No nodes connected. Start a Desktop Client.</p>
                                 </div>
                             ) : nodes.map(node => {
                                 const active = node.cameras.filter(c => c.is_active).length;
                                 return (
-                                    <div key={node.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-800/40 transition-colors">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shrink-0" />
+                                    <div key={node.id} className="px-4 sm:px-6 py-4 flex items-center gap-4 hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse shrink-0" />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold text-white truncate">
                                                 {node.label || `Node #${node.id}`}
                                             </p>
-                                            <p className="text-xs text-gray-500 font-mono">{node.base_url}:{node.port}</p>
+                                            <p className="text-xs text-gray-400 font-mono">{node.base_url}:{node.port}</p>
                                         </div>
                                         <span className="flex items-center gap-1.5 text-xs text-emerald-400 shrink-0">
                                             <Camera className="w-3.5 h-3.5" />
