@@ -167,12 +167,15 @@ export default function Nodes() {
                                                             activeCameras.length === 2 ? 'grid-cols-1 lg:grid-cols-2' :
                                                                 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}
                                                     >
-                                                        {activeCameras.map(camera => (
-                                                            <WebRTCPlayer
-                                                                key={camera.id}
-                                                                cameraId={camera.camera_id}
-                                                            />
-                                                        ))}
+                                                        {activeCameras.map(camera => {
+                                                            const stream = liveStreams.find(s => s.camera_id === camera.camera_id && s.node === node.id);
+                                                            return (
+                                                                <WebRTCPlayer
+                                                                    key={camera.id}
+                                                                    cameraId={stream ? stream.id : camera.camera_id}
+                                                                />
+                                                            );
+                                                        })}
                                                     </div>
                                                 </>
                                             )}
