@@ -160,3 +160,48 @@ def merge_threat_timeline_to_segments(timeline, segment_duration_ms=2000):
         'severity': current_severity,
     })
     return merged
+
+
+def compile_mp4_task(recording_id: str):
+    from .models import Recording
+    import tempfile
+    import subprocess
+    import shutil
+    try:
+        recording = Recording.objects.get(id=recording_id)
+        segments = recording.segments.filter(uploaded=True).order_by('segment_index')
+        if not segments.exists():
+            logger.warning(f"No segments found for recording {recording_id}")
+            return
+
+        client = get_minio_client()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            list_file_path = os.path.join(tmpdir, 'list.txt')
+            with open(list_file_path, 'w') as f:
+                for seg in segments:
+                    local_ts = os.path.join(tmpdir, f"{seg.segment_index}.ts")
+                    client.fget_object(recording.minio_bucket, seg.minio_key, local_ts)
+                    f.write(f"file '{seg.segment_index}.ts'\n")
+
+            output_mp4 = os.path.join(tmpdir, 'output.mp4')
+            cmd = [
+                'ffmpeg', '-y', '-f', 'concat', '-safe', '0', 
+                '-i', list_file_path, '-c', 'copy', '-movflags', 'faststart', output_mp4
+            ]
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            mp4_key = f"{recording.minio_prefix}/video.mp4"
+            file_size = os.path.getsize(output_mp4)
+            client.fput_object(recording.minio_bucket, mp4_key, output_mp4, content_type='video/mp4')
+            
+            recording.mp4_key = mp4_key
+            recording.save(update_fields=['mp4_key'])
+            logger.info(f"Successfully compiled MP4 for recording {recording_id}")
+    except Exception as e:
+        logger.error(f"Failed to compile MP4 for recording {recording_id}: {e}")
+
+def trigger_mp4_compilation(recording_id: str):
+    import threading
+    thread = threading.Thread(target=compile_mp4_task, args=(recording_id,))
+    thread.daemon = True
+    thread.start()

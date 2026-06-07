@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Pause, Eye, EyeOff, Loader } from 'lucide-react';
+import { Play, Pause, Eye, EyeOff, Loader, Download } from 'lucide-react';
 import request from '../utils/request';
 import DetectionOverlay from './DetectionOverlay';
 import ThreatSeekerBar from './ThreatSeekerBar';
@@ -11,7 +11,6 @@ interface RecordingPlayerProps {
 
 export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const hlsRef = useRef<any>(null);
     const [status, setStatus] = useState<'loading' | 'playing' | 'paused' | 'error'>('loading');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [metadata, setMetadata] = useState<FrameMetadata | null>(null);
@@ -20,6 +19,8 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
     const [durationMs, setDurationMs] = useState(0);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
     const [startTimestampMicros, setStartTimestampMicros] = useState<number>(0);
+
+    const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
     const metadataCache = useRef<Map<number, FrameMetadata>>(new Map());
     const metadataInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -110,53 +111,38 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
                     const startMicros = recordingData.start_timestamp_micros || 0;
                     setStartTimestampMicros(startMicros);
                     
-                    // Trigger an immediate "Warm-up Prefetch" for the start of the video
                     if (startMicros) {
                         fetchMetadataAtTime(0, startMicros);
                     }
-                }
-                const manifestUrl = `${import.meta.env.VITE_BACKEND_URL}${recordingData.playlist_url}`;
-
-                const Hls = (await import('hls.js')).default;
-
-                if (Hls.isSupported()) {
-                    const hls = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: false,
-                    });
-                    hlsRef.current = hls;
-
-                    hls.loadSource(manifestUrl);
-                    hls.attachMedia(videoRef.current!);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        if (isMounted) {
-                            setStatus('playing');
-                            videoRef.current?.play().catch(() => {});
-                        }
-                    });
-
-                    hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-                        if (data.fatal) {
-                            setStatus('error');
-                            setErrorMsg(data.type + ': ' + (data.details || 'unknown'));
-                        }
-                    });
-                } else if (videoRef.current?.canPlayType('application/vnd.apple.mpegurl')) {
-                    videoRef.current.src = manifestUrl;
-                    videoRef.current.addEventListener('loadedmetadata', () => {
-                        if (isMounted) {
-                            setStatus('playing');
-                            videoRef.current?.play().catch(() => {});
-                        }
-                    });
-                } else {
-                    setStatus('error');
-                    setErrorMsg('HLS playback not supported in this browser');
+                    
+                    const mp4Url = `${import.meta.env.VITE_BACKEND_URL}${recordingData.mp4_url}`;
+                    setDownloadUrl(mp4Url);
+                    
+                    if (videoRef.current) {
+                        videoRef.current.src = mp4Url;
+                        videoRef.current.addEventListener('loadedmetadata', () => {
+                            if (isMounted) {
+                                setStatus('playing');
+                                videoRef.current?.play().catch(() => {});
+                            }
+                        });
+                        videoRef.current.addEventListener('error', () => {
+                            if (isMounted) {
+                                setStatus('error');
+                                setErrorMsg('MP4 is still processing or unavailable');
+                            }
+                        });
+                    }
                 }
             } catch (err: any) {
-                setStatus('error');
-                setErrorMsg(err?.message || 'Failed to load recording');
+                if (isMounted) {
+                    setStatus('error');
+                    if (err.response?.status === 400 || err.response?.status === 404) {
+                        setErrorMsg(err.response.data?.detail || 'MP4 processing...');
+                    } else {
+                        setErrorMsg(err?.message || 'Failed to load recording');
+                    }
+                }
             }
         }
 
@@ -172,10 +158,6 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
 
         return () => {
             isMounted = false;
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-            }
             if (metadataInterval.current) {
                 clearInterval(metadataInterval.current);
             }
@@ -192,6 +174,18 @@ export default function RecordingPlayer({ recordingId }: RecordingPlayerProps) {
                     Recording Playback
                 </span>
                 <div className="ml-auto flex items-center gap-2">
+                    {downloadUrl && (
+                        <a
+                            href={downloadUrl}
+                            download={`recording-${recordingId}.mp4`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 rounded hover:bg-gray-700 transition-colors"
+                            title="Download MP4"
+                        >
+                            <Download className="w-3.5 h-3.5 text-blue-400" />
+                        </a>
+                    )}
                     <button
                         onClick={() => setOverlayEnabled(!overlayEnabled)}
                         className="p-1 rounded hover:bg-gray-700 transition-colors"

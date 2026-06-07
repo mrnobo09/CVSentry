@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/v1/recordings/', views.RecordingListView.as_view(), name='recording-list'),
     path('api/v1/recordings/<uuid:recording_id>/', views.RecordingDetailView.as_view(), name='recording-detail'),
     path('api/v1/recordings/<uuid:recording_id>/playlist.m3u8', views.RecordingPlaylistView.as_view(), name='recording-playlist'),
+    path('api/v1/recordings/<uuid:recording_id>/video.mp4', views.RecordingMP4View.as_view(), name='recording-mp4'),
     path('api/v1/recordings/<uuid:recording_id>/segments/<int:segment_index>.ts', views.RecordingSegmentProxyView.as_view(), name='recording-segment'),
     path('api/v1/recordings/<uuid:recording_id>/metadata/', views.RecordingMetadataView.as_view(), name='recording-metadata'),
 

@@ -227,13 +227,17 @@ class SRSOnUnpublishView(APIView):
         else:
             stream_key = stream_url.strip('/')
 
-        Recording.objects.filter(
+        recordings = Recording.objects.filter(
             srs_stream_id=stream_key,
             status='recording',
-        ).update(
-            status='completed',
-            ended_at=timezone.now(),
         )
+        for recording in recordings:
+            recording.status = 'completed'
+            recording.ended_at = timezone.now()
+            recording.save(update_fields=['status', 'ended_at'])
+            
+            from .services import trigger_mp4_compilation
+            trigger_mp4_compilation(str(recording.id))
 
         return Response({'code': 0})
 
@@ -645,6 +649,10 @@ class RecordingDetailView(APIView):
         from django.urls import reverse
         playlist_path = reverse('recording-playlist', kwargs={'recording_id': recording.id})
         data['playlist_url'] = f"{playlist_path}?token={token}"
+        
+        mp4_path = reverse('recording-mp4', kwargs={'recording_id': recording.id})
+        data['mp4_url'] = f"{mp4_path}?token={token}"
+        
         data['start_timestamp_micros'] = int(recording.started_at.timestamp() * 1_000_000)
         
         return Response(data)
@@ -713,6 +721,46 @@ class RecordingSegmentProxyView(APIView):
             recording.minio_bucket,
             seg.minio_key,
             expires=timedelta(minutes=5),
+        )
+
+        from django.shortcuts import redirect
+        return redirect(presigned)
+
+
+class RecordingMP4View(APIView):
+    """
+    Returns a pre-signed MinIO URL for the compiled MP4 file, or a 404 if not ready yet.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, recording_id):
+        token = request.query_params.get('token')
+        if not token:
+            return Response({'detail': 'Authentication required.'}, status=401)
+            
+        decoded = _decode_recording_token(token)
+        if not decoded or decoded['recording_id'] != str(recording_id):
+            return Response({'detail': 'Invalid or expired token.'}, status=403)
+
+        try:
+            recording = Recording.objects.get(
+                id=recording_id,
+                user_id=decoded['user_id'],
+            )
+        except Recording.DoesNotExist:
+            return Response({'detail': 'Recording not found.'}, status=404)
+
+        if not recording.mp4_key:
+            if recording.status == 'recording':
+                return Response({'detail': 'Recording is still in progress.'}, status=400)
+            return Response({'detail': 'MP4 is processing or not available.'}, status=404)
+
+        from .services import get_minio_client
+        client = get_minio_client()
+        presigned = client.presigned_get_object(
+            recording.minio_bucket,
+            recording.mp4_key,
+            expires=timedelta(hours=2),
         )
 
         from django.shortcuts import redirect

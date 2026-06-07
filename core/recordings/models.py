@@ -39,6 +39,7 @@ class Recording(models.Model):
 
     minio_bucket = models.CharField(max_length=100, default='cvsentry-recordings')
     minio_prefix = models.CharField(max_length=500, blank=True, default='')
+    mp4_key = models.CharField(max_length=500, blank=True, null=True)
 
     total_duration_ms = models.BigIntegerField(default=0)
     total_size_bytes = models.BigIntegerField(default=0)
