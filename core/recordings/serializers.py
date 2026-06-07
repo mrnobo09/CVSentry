@@ -96,6 +96,6 @@ class LiveStreamSerializer(serializers.ModelSerializer):
     class Meta:
         model = LiveStream
         fields = [
-            'id', 'camera_id', 'srs_stream_id',
+            'id', 'node', 'camera_id', 'srs_stream_id',
             'started_at', 'is_active',
         ]

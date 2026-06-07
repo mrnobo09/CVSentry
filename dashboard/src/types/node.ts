@@ -21,6 +21,7 @@ export interface Node {
 
 export interface LiveStream {
     id: string;
+    node: number;
     camera_id: string;
     srs_stream_id: string;
     started_at: string;
